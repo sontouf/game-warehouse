@@ -15,16 +15,16 @@
   var FIELD_H = 420;
 
   var GOODS = {
-    egg: { name: "달걀", emoji: "🥚", sell: 10, size: 1, spoil: 18 },
-    powder: { name: "계란가루", emoji: "🧂", sell: 20, size: 1, spoil: 22 },
-    cupcake: { name: "컵케이크", emoji: "🧁", sell: 80, size: 1, spoil: 26 },
-    wool: { name: "양털", emoji: "🧶", sell: 100, size: 2, spoil: 20 },
-    thread: { name: "실", emoji: "🧵", sell: 200, size: 2, spoil: 24 },
-    fabric: { name: "옷감", emoji: "🧣", sell: 800, size: 2, spoil: 28 },
-    milk: { name: "우유", emoji: "🥛", sell: 400, size: 3, spoil: 20 },
-    butter: { name: "버터", emoji: "🧈", sell: 800, size: 3, spoil: 24 },
-    cheese: { name: "치즈", emoji: "🧀", sell: 2000, size: 3, spoil: 28 },
-    bear: { name: "곰", emoji: "🐻", sell: 100, size: 4, spoil: 999 }
+    egg: { name: "달걀", emoji: "🥚", sell: 10, space: 1, car: 1, spoil: 18 },
+    powder: { name: "계란가루", emoji: "🧂", sell: 20, space: 1, car: 1, spoil: 22 },
+    cupcake: { name: "컵케이크", emoji: "🧁", sell: 80, space: 1, car: 1, spoil: 26 },
+    wool: { name: "양털", emoji: "🧶", sell: 100, space: 2, car: 1, spoil: 20 },
+    thread: { name: "실", emoji: "🧵", sell: 200, space: 2, car: 1, spoil: 24 },
+    fabric: { name: "옷감", emoji: "🧣", sell: 800, space: 2, car: 1, spoil: 28 },
+    milk: { name: "우유", emoji: "🥛", sell: 400, space: 2, car: 1, spoil: 20 },
+    butter: { name: "버터", emoji: "🧈", sell: 800, space: 2, car: 1, spoil: 24 },
+    cheese: { name: "치즈", emoji: "🧀", sell: 2000, space: 2, car: 1, spoil: 28 },
+    bear: { name: "곰", emoji: "🐻", sell: 100, space: 3, car: 1, spoil: 999 }
   };
 
   var ANIMALS = {
@@ -63,43 +63,43 @@
     {
       id: 1, title: "첫 농장", money: 200,
       start: { goose: 1 }, unlock: ["goose"],
-      factories: [], wellLv: 0, storeLv: 0, carLv: 0, cageClicks: 6,
+      factories: [], wellLv: 0, storeLv: 0, carLv: 0, cageClicks: 5,
       bearEvery: 28, goals: [{ type: "money", amount: 150 }, { type: "collect", good: "egg", amount: 5 }]
     },
     {
       id: 2, title: "시장으로", money: 250,
       start: { goose: 2 }, unlock: ["goose"],
-      factories: [], wellLv: 0, storeLv: 0, carLv: 0, cageClicks: 6,
+      factories: [], wellLv: 0, storeLv: 0, carLv: 0, cageClicks: 5,
       bearEvery: 24, goals: [{ type: "money", amount: 400 }, { type: "collect", good: "egg", amount: 10 }]
     },
     {
       id: 3, title: "가공의 시작", money: 400,
       start: { goose: 2 }, unlock: ["goose"],
-      factories: ["eggPlant"], wellLv: 0, storeLv: 0, carLv: 0, cageClicks: 5,
+      factories: ["eggPlant"], wellLv: 0, storeLv: 1, carLv: 0, cageClicks: 5,
       bearEvery: 22, goals: [{ type: "money", amount: 600 }, { type: "collect", good: "powder", amount: 4 }]
     },
     {
       id: 4, title: "달콤한 케이크", money: 500,
       start: { goose: 3 }, unlock: ["goose"],
-      factories: ["eggPlant", "bakery"], wellLv: 0, storeLv: 0, carLv: 1, cageClicks: 5,
+      factories: ["eggPlant", "bakery"], wellLv: 0, storeLv: 1, carLv: 1, cageClicks: 4,
       bearEvery: 20, goals: [{ type: "money", amount: 900 }, { type: "collect", good: "cupcake", amount: 3 }]
     },
     {
       id: 5, title: "양털 농장", money: 1200,
       start: { goose: 1, sheep: 1 }, unlock: ["goose", "sheep"],
-      factories: ["eggPlant", "bakery", "spinnery"], wellLv: 0, storeLv: 1, carLv: 1, cageClicks: 5,
+      factories: ["eggPlant", "bakery", "spinnery"], wellLv: 0, storeLv: 1, carLv: 1, cageClicks: 4,
       bearEvery: 18, goals: [{ type: "money", amount: 2000 }, { type: "collect", good: "wool", amount: 4 }, { type: "animals", kind: "sheep", amount: 2 }]
     },
     {
       id: 6, title: "실과 옷감", money: 2500,
       start: { sheep: 2 }, unlock: ["goose", "sheep", "dog"],
-      factories: ["spinnery", "weave"], wellLv: 1, storeLv: 1, carLv: 1, cageClicks: 4,
+      factories: ["spinnery", "weave"], wellLv: 1, storeLv: 2, carLv: 2, cageClicks: 4,
       bearEvery: 16, goals: [{ type: "money", amount: 4500 }, { type: "collect", good: "fabric", amount: 2 }]
     },
     {
       id: 7, title: "우유가 필요해", money: 6000,
       start: { sheep: 1, cow: 1 }, unlock: ["goose", "sheep", "cow", "dog", "cat"],
-      factories: ["spinnery", "churn"], wellLv: 1, storeLv: 1, carLv: 2, cageClicks: 4,
+      factories: ["spinnery", "churn"], wellLv: 1, storeLv: 2, carLv: 2, cageClicks: 3,
       bearEvery: 15, goals: [{ type: "money", amount: 8000 }, { type: "collect", good: "butter", amount: 2 }, { type: "animals", kind: "cow", amount: 2 }]
     },
     {
@@ -132,14 +132,31 @@
     }
   ];
 
-  function storeCap(lv) { return [8, 14, 22, 32][lv] || 8; }
-  function carSlots(lv) { return [2, 3, 4, 5][lv] || 2; }
+  /*
+   * 용량 설계 (전 스테이지 공통)
+   * - 창고 Lv0=14: 곰1(3)+달걀11 또는 달걀5+곰3 가능 → 1스테이지 미션 여유
+   * - 자동차 Lv0=4: 곰1+달걀3 동시 출하 가능 (곰 car=1)
+   * - 업그레이드마다 여유 칸 증가
+   */
+  function storeCap(lv) { return [14, 22, 32, 44][lv] || 14; }
+  function carSlots(lv) { return [4, 5, 7, 9][lv] || 4; }
   function carTime(lv) { return [7, 5.5, 4, 3][lv] || 7; }
   function wellWater(lv) { return [5, 8, 12, 99][lv] || 5; }
   function wellRefillCost(lv) { return [19, 15, 12, 7][lv] || 19; }
   function wellUpCost(lv) { return [300, 600, 1200, 5000][lv]; }
   function storeUpCost(lv) { return [150, 500, 1000, 5000][lv]; }
   function carUpCost(lv) { return [300, 800, 1500, 5000][lv]; }
+  function freeStore(state) { return storeCap(state.storeLv) - usedSlotsOf(state); }
+  function usedSlotsOf(state) {
+    var n = 0;
+    Object.keys(state.warehouse || {}).forEach(function (k) {
+      n += (state.warehouse[k] || 0) * (GOODS[k] ? GOODS[k].space : 1);
+    });
+    return n;
+  }
+  function goodCarSpace(good) {
+    return GOODS[good] ? (GOODS[good].car || GOODS[good].space || 1) : 1;
+  }
 
   function uid() { return "e" + Math.random().toString(36).slice(2, 9); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -205,22 +222,24 @@
     }
 
     function usedSlots() {
-      var n = 0;
-      Object.keys(state.warehouse).forEach(function (k) {
-        n += (state.warehouse[k] || 0) * (GOODS[k] ? GOODS[k].space : 1);
-      });
-      return n;
+      return usedSlotsOf(state);
     }
 
     function canStore(good, qty) {
       qty = qty || 1;
-      return usedSlots() + GOODS[good].space * qty <= storeCap(state.storeLv);
+      var need = (GOODS[good] ? GOODS[good].space : 1) * qty;
+      return usedSlots() + need <= storeCap(state.storeLv);
     }
 
     function addWarehouse(good, qty) {
       qty = qty || 1;
+      var need = (GOODS[good] ? GOODS[good].space : 1) * qty;
+      var free = freeStore(state);
       if (!canStore(good, qty)) {
-        toast("창고가 가득 찼습니다! 자동차로 판매하세요.");
+        toast(
+          "창고 여유 " + free + "칸 / " + (GOODS[good] ? GOODS[good].name : good) +
+            "은(는) " + need + "칸 필요. 자동차로 출하하세요!"
+        );
         return false;
       }
       state.warehouse[good] = (state.warehouse[good] || 0) + qty;
@@ -399,7 +418,7 @@
       var m = Math.floor(state.time / 60);
       var s = Math.floor(state.time % 60);
       els.time.textContent = m + ":" + String(s).padStart(2, "0");
-      els.store.textContent = usedSlots() + "/" + storeCap(state.storeLv);
+      els.store.textContent = usedSlots() + "/" + storeCap(state.storeLv) + " (여유 " + freeStore(state) + ")";
       api.setScore(Math.floor(state.money));
     }
 
@@ -455,17 +474,20 @@
         '<button type="button" class="btn btn--primary" id="ff-refill">물 사기</button>' +
         '<p class="ff-note">밭 클릭 = 풀 심기</p></div>';
 
-      html += '<div class="ff-panel"><h4>📦 창고</h4><div class="ff-inv">';
+      html += '<div class="ff-panel"><h4>📦 창고 <small>' + usedSlots() + '/' + storeCap(state.storeLv) +
+        '</small></h4><div class="ff-inv">';
       var keys = Object.keys(state.warehouse).filter(function (k) { return state.warehouse[k] > 0; });
-      if (!keys.length) html += "<p class='ff-note'>비어 있음</p>";
+      if (!keys.length) html += '<p class="ff-note">비어 있음 · 곰 3칸 / 달걀 1칸</p>';
       keys.forEach(function (k) {
-        html += "<div>" + GOODS[k].emoji + " " + GOODS[k].name + " × <b>" + state.warehouse[k] + "</b>" +
-          " <small>(" + GOODS[k].sell + "원)</small></div>";
+        var g = GOODS[k];
+        var used = state.warehouse[k] * g.space;
+        html += '<div>' + g.emoji + ' ' + g.name + ' × <b>' + state.warehouse[k] + '</b>' +
+          ' <small>(' + g.sell + '원 · 칸 ' + used + ')</small></div>';
       });
-      html += "</div>" +
-        '<button type="button" class="btn btn--primary" id="ff-open-car"' + (state.car.busy ? " disabled" : "") + ">" +
-        (state.car.busy ? "자동차 시장 이동중… " + Math.ceil(state.car.t) + "s" : "자동차로 시장 가기") +
-        "</button></div>";
+      html += '</div><p class="ff-note">여유 ' + freeStore(state) + '칸 · 자동차 ' + carSlots(state.carLv) + '슬롯</p>' +
+        '<button type="button" class="btn btn--primary" id="ff-open-car"' + (state.car.busy ? ' disabled' : '') + '>' +
+        (state.car.busy ? '자동차 시장 이동중… ' + Math.ceil(state.car.t) + 's' : '자동차로 시장 가기') +
+        '</button></div>';
 
       html += '<div class="ff-panel"><h4>🐾 가축 판매</h4><div class="ff-btns">';
       ["goose", "sheep", "cow"].forEach(function (kind) {
@@ -655,9 +677,9 @@
         els.modal.querySelectorAll("[data-car-plus]").forEach(function (b) {
           b.onclick = function () {
             var k = b.getAttribute("data-car-plus");
-            var space = GOODS[k].space;
+            var space = goodCarSpace(k);
             if ((state.warehouse[k] || 0) - (load[k] || 0) <= 0) return;
-            if (slots + space > maxSlots) { toast("자동차 슬롯이 부족합니다."); return; }
+            if (slots + space > maxSlots) { toast("자동차 슬롯이 부족합니다. (이 물건 " + space + "슬롯)"); return; }
             load[k] = (load[k] || 0) + 1;
             slots += space;
             revenue += GOODS[k].sell;
@@ -669,7 +691,7 @@
             var k = b.getAttribute("data-car-minus");
             if (!load[k]) return;
             load[k] -= 1;
-            slots -= GOODS[k].space;
+            slots -= goodCarSpace(k);
             revenue -= GOODS[k].sell;
             if (load[k] <= 0) delete load[k];
             sync();
@@ -734,16 +756,19 @@
           if (addWarehouse("bear", 1)) {
             state.bearsCaught += 1;
             state.bears.splice(bi, 1);
-            toast("곰을 창고에 넣었습니다.");
+            toast("곰을 창고에 넣었습니다. (칸 3 사용)");
             checkGoals();
             renderRight();
+            updateHud();
+          } else {
+            bear.cageLife = Math.max(bear.cageLife, 10);
           }
         } else {
           bear.clicks += 1;
           if (bear.clicks >= state.cageNeed) {
             bear.caged = true;
-            bear.cageLife = 8;
-            toast("곰을 가뒀습니다! 클릭해서 창고로.");
+            bear.cageLife = 12;
+            toast("곰을 가뒀습니다! 다시 클릭해 창고로 넣으세요.");
           }
         }
         return;
