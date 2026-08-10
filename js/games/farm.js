@@ -10,7 +10,7 @@
    * - 스테이지별 미션 클리어
    */
 
-  var SAVE_KEY = "gw-farm-frenzy-stage";
+  var SAVE_KEY = "gw-farm-frenzy-stage-v48";
   var FIELD_W = 640;
   var FIELD_H = 420;
 
@@ -63,78 +63,8 @@
     dairy: { name: "치즈공장", emoji: "🧀", from: "butter", to: "cheese", buy: 40000, upCost: [60000, 80000, 100000, 120000], time: 8 }
   };
 
-  var STAGES = [
-    {
-      id: 1, title: "첫 농장", money: 200,
-      start: { goose: 1 }, unlock: ["goose"],
-      factories: [], wellLv: 0, storeLv: 0, carLv: 0, cageClicks: 5,
-      bearEvery: 28, goals: [{ type: "money", amount: 150 }, { type: "collect", good: "egg", amount: 5 }]
-    },
-    {
-      id: 2, title: "시장으로", money: 250,
-      start: { goose: 2 }, unlock: ["goose"],
-      factories: [], wellLv: 0, storeLv: 0, carLv: 0, cageClicks: 5,
-      bearEvery: 24, goals: [{ type: "money", amount: 400 }, { type: "collect", good: "egg", amount: 10 }]
-    },
-    {
-      id: 3, title: "가공의 시작", money: 400,
-      start: { goose: 2 }, unlock: ["goose"],
-      factories: ["eggPlant"], wellLv: 0, storeLv: 1, carLv: 0, cageClicks: 5,
-      bearEvery: 22, goals: [{ type: "money", amount: 600 }, { type: "collect", good: "powder", amount: 4 }]
-    },
-    {
-      id: 4, title: "달콤한 케이크", money: 500,
-      start: { goose: 3 }, unlock: ["goose"],
-      factories: ["eggPlant", "bakery"], wellLv: 0, storeLv: 1, carLv: 1, cageClicks: 4,
-      bearEvery: 20, goals: [{ type: "money", amount: 900 }, { type: "collect", good: "cupcake", amount: 3 }]
-    },
-    {
-      id: 5, title: "양털 농장", money: 1500,
-      start: { goose: 1, sheep: 1 }, unlock: ["goose", "sheep"],
-      factories: ["eggPlant", "bakery", "spinnery"], wellLv: 0, storeLv: 1, carLv: 1, cageClicks: 4,
-      bearEvery: 18, goals: [{ type: "money", amount: 2500 }, { type: "collect", good: "wool", amount: 4 }, { type: "animals", kind: "sheep", amount: 2 }]
-    },
-    {
-      id: 6, title: "실과 옷감", money: 4000,
-      start: { sheep: 2 }, unlock: ["goose", "sheep", "dog"],
-      factories: ["spinnery", "weave"], wellLv: 1, storeLv: 2, carLv: 2, cageClicks: 4,
-      bearEvery: 16, goals: [{ type: "money", amount: 6000 }, { type: "collect", good: "fabric", amount: 2 }]
-    },
-    {
-      id: 7, title: "우유가 필요해", money: 15000,
-      start: { sheep: 1, cow: 1 }, unlock: ["goose", "sheep", "cow", "dog", "cat"],
-      factories: ["spinnery", "churn"], wellLv: 1, storeLv: 2, carLv: 2, cageClicks: 3,
-      bearEvery: 15, goals: [{ type: "money", amount: 20000 }, { type: "collect", good: "butter", amount: 2 }, { type: "animals", kind: "cow", amount: 2 }]
-    },
-    {
-      id: 8, title: "치즈 마스터", money: 30000,
-      start: { cow: 2, cat: 1 }, unlock: ["goose", "sheep", "cow", "dog", "cat"],
-      factories: ["churn", "dairy", "eggPlant", "bakery"], wellLv: 2, storeLv: 2, carLv: 2, cageClicks: 3,
-      bearEvery: 13, goals: [{ type: "money", amount: 40000 }, { type: "collect", good: "cheese", amount: 2 }]
-    },
-    {
-      id: 9, title: "풀가동 농장", money: 40000,
-      start: { goose: 2, sheep: 2, cow: 1, dog: 1 }, unlock: ["goose", "sheep", "cow", "dog", "cat"],
-      factories: ["eggPlant", "bakery", "spinnery", "weave", "churn", "dairy"], wellLv: 2, storeLv: 2, carLv: 2, cageClicks: 3,
-      bearEvery: 12, goals: [
-        { type: "money", amount: 60000 },
-        { type: "collect", good: "cupcake", amount: 5 },
-        { type: "collect", good: "fabric", amount: 2 },
-        { type: "collect", good: "cheese", amount: 1 }
-      ]
-    },
-    {
-      id: 10, title: "전설의 농장주", money: 50000,
-      start: { goose: 3, sheep: 2, cow: 2, cat: 1, dog: 1 }, unlock: ["goose", "sheep", "cow", "dog", "cat"],
-      factories: ["eggPlant", "bakery", "spinnery", "weave", "churn", "dairy"], wellLv: 3, storeLv: 3, carLv: 3, cageClicks: 3,
-      bearEvery: 10, goals: [
-        { type: "money", amount: 100000 },
-        { type: "collect", good: "cheese", amount: 3 },
-        { type: "collect", good: "fabric", amount: 3 },
-        { type: "catchBear", amount: 3 }
-      ]
-    }
-  ];
+  /* 원작 48레벨: js/games/ff1-stages.js */
+  var STAGES = (typeof window !== "undefined" && window.FF1_STAGES) ? window.FF1_STAGES : [];
 
   /*
    * 용량 설계 (전 스테이지 공통)
@@ -148,7 +78,7 @@
   function wellWater(lv) { return [5, 8, 12, 99][lv] || 5; }
   function wellRefillCost(lv) { return [19, 17, 15, 7][lv] || 19; }
   function wellUpCost(lv) { return [300, 600, 1200, 5000][lv]; }
-  function storeUpCost(lv) { return [150, 500, 1000, 12000][lv]; }
+  function storeUpCost(lv) { return [150, 500, 1000, 2000][lv]; }
   function carUpCost(lv) { return [300, 800, 1500, 5000][lv]; }
   function freeStore(state) { return storeCap(state.storeLv) - usedSlotsOf(state); }
   function usedSlotsOf(state) {
@@ -344,6 +274,7 @@
         car: { busy: false, t: 0, load: {}, revenue: 0 },
         goals: conf.goals.map(function (g) { return Object.assign({ _done: false }, g); }),
         unlock: conf.unlock.slice(),
+        availableFactories: (conf.availableFactories || []).slice(),
         bearEvery: conf.bearEvery,
         bearTimer: conf.bearEvery * 0.6,
         cleared: false,
@@ -383,21 +314,41 @@
       els.menu.hidden = false;
       running = false;
       cancelAnimationFrame(raf);
-      var html = '<div class="ff-menu-card"><h3>🌾 팜프렌지 1탄</h3><p>동물을 키우고, 가공하고, 곰을 잡아 미션을 클리어하세요.</p><div class="ff-stage-list">';
-      STAGES.forEach(function (s, i) {
-        var locked = s.id > maxUnlocked;
-        html += '<button type="button" class="ff-stage-btn' + (locked ? " is-locked" : "") + '" data-stage="' + i + '" ' + (locked ? "disabled" : "") + ">" +
-          "<strong>Stage " + s.id + "</strong><span>" + s.title + "</span>" +
-          (locked ? "<em>잠김</em>" : "<em>플레이</em>") +
+      if (!STAGES.length) {
+        els.menu.innerHTML = '<div class="ff-menu-card"><h3>스테이지 로드 실패</h3><p>ff1-stages.js를 확인하세요.</p></div>';
+        return;
+      }
+      var html = '<div class="ff-menu-card"><h3>🌾 팜프렌지 1탄</h3>' +
+        '<p>원작 48레벨 · 해금 ' + Math.min(maxUnlocked, STAGES.length) + '/' + STAGES.length +
+        ' · 미션/시작자금/시작동물은 GameFAQs 기준</p>' +
+        '<div class="ff-stage-list ff-stage-list--grid">';
+      STAGES.forEach(function (stage, i) {
+        var locked = stage.id > maxUnlocked;
+        var tip = stage.goals.map(goalLabel).join(" / ");
+        html += '<button type="button" class="ff-stage-btn ff-stage-btn--num' + (locked ? " is-locked" : "") +
+          '" data-stage="' + i + '" title="' + tip.replace(/"/g, "") + '" ' + (locked ? "disabled" : "") + ">" +
+          "<strong>" + stage.id + "</strong>" +
+          (locked ? "<em>🔒</em>" : "<em>✓</em>") +
           "</button>";
       });
-      html += "</div></div>";
+      html += "</div>";
+      var cur = STAGES[Math.min(maxUnlocked, STAGES.length) - 1] || STAGES[0];
+      html += '<div class="ff-stage-preview"><h4>다음/최근: 레벨 ' + cur.id + "</h4><ul>" +
+        cur.goals.map(function (g) { return "<li>" + goalLabel(g) + "</li>"; }).join("") +
+        "</ul><p>시작 자금 " + cur.money.toLocaleString("ko-KR") + "원</p>" +
+        '<button type="button" class="btn btn--primary" id="ff-play-current">이 레벨 플레이</button></div></div>';
       els.menu.innerHTML = html;
       els.menu.querySelectorAll("[data-stage]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           initStage(Number(btn.getAttribute("data-stage")));
         });
       });
+      var playBtn = els.menu.querySelector("#ff-play-current");
+      if (playBtn) {
+        playBtn.addEventListener("click", function () {
+          initStage(Math.min(maxUnlocked, STAGES.length) - 1);
+        });
+      }
     }
 
     function goalLabel(g) {
@@ -461,7 +412,9 @@
       Object.keys(FACTORIES).forEach(function (fid) {
         var f = FACTORIES[fid];
         var st = state.factories[fid];
+        var canBuy = state.availableFactories.indexOf(fid) !== -1;
         if (!st.owned) {
+          if (!canBuy) return;
           html += '<button type="button" class="ff-mini" data-buy-factory="' + fid + '">' + f.emoji + " " + f.name +
             " 구매<small>" + f.buy.toLocaleString("ko-KR") + "원</small></button>";
         } else {
@@ -1100,10 +1053,10 @@
     id: "farm",
     title: "팜프렌지 1탄",
     emoji: "🌾",
-    desc: "풀·동물·가공·곰·창고·자동차까지! 스테이지 미션 클리어형 타임매니지먼트",
-    tags: ["시뮬레이션", "스테이지"],
+    desc: "원작 48레벨 · 거위·양·소·개·고양이 · GameFAQs 미션 그대로",
+    tags: ["시뮬레이션", "48레벨"],
     accent: "#3dd68c",
-    hint: "우물→풀 심기 · 산물/곰 클릭 · 공장 가공 · 자동차 판매 · 스테이지 미션 달성",
+    hint: "원작 팜프렌지 1 스테이지/미션 · 우물→풀 · 산물/곰 · 공장 · 자동차 판매",
     create: create
   };
 })(window);

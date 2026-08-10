@@ -7,7 +7,9 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const code = fs.readFileSync(path.join(__dirname, "../js/games/farm.js"), "utf8");
+const code = fs.readFileSync(path.join(__dirname, "../js/games/ff1-stages.js"), "utf8") +
+  "\n" +
+  fs.readFileSync(path.join(__dirname, "../js/games/farm.js"), "utf8");
 
 const sandbox = {
   window: { GWGames: {} },
@@ -122,7 +124,7 @@ const expect = {
   equipment: {
     wellRefill: [19, 17, 15, 7],
     wellUp: [300, 600, 1200, 5000],
-    storeUp: [150, 500, 1000, 12000],
+    storeUp: [150, 500, 1000, 2000],
     carUp: [300, 800, 1500, 5000]
   }
 };

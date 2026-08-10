@@ -147,7 +147,10 @@ const windowObj = {
   }
 };
 
-const code = fs.readFileSync(path.join(__dirname, "../js/games/farm.js"), "utf8");
+const code =
+  fs.readFileSync(path.join(__dirname, "../js/games/ff1-stages.js"), "utf8") +
+  "\n" +
+  fs.readFileSync(path.join(__dirname, "../js/games/farm.js"), "utf8");
 vm.runInNewContext(code, {
   window: windowObj,
   document,
@@ -185,15 +188,19 @@ if (!menu) {
   process.exit(1);
 }
 
-if (!String(menu.innerHTML || menu._html || "").includes("Stage")) {
-  // renderMenu sets innerHTML on menu
-  console.error("FAIL: stage menu empty", menu.innerHTML);
+if (!windowObj.FF1_STAGES || windowObj.FF1_STAGES.length !== 48) {
+  console.error("FAIL: FF1_STAGES not loaded", windowObj.FF1_STAGES && windowObj.FF1_STAGES.length);
   process.exit(1);
 }
 
 const buttons = menu.querySelectorAll("[data-stage]");
 if (!buttons.length) {
-  console.error("FAIL: no stage buttons");
+  console.error("FAIL: no stage buttons", menu.innerHTML.slice(0, 200));
+  process.exit(1);
+}
+
+if (buttons.length !== 48) {
+  console.error("FAIL: expected 48 stage buttons, got", buttons.length);
   process.exit(1);
 }
 
