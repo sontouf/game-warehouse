@@ -453,7 +453,7 @@
       html += '<div class="ff-panel"><h4>💧 우물</h4>' +
         "<p>물 " + (state.autoWell ? "자동" : state.water) + " / 재충전 " + cost + "원</p>" +
         '<button type="button" class="btn btn--primary" id="ff-refill">물 사기</button>' +
-        "<p class="ff-note">밭 클릭 = 풀 심기</p></div>";
+        '<p class="ff-note">밭 클릭 = 풀 심기</p></div>';
 
       html += '<div class="ff-panel"><h4>📦 창고</h4><div class="ff-inv">';
       var keys = Object.keys(state.warehouse).filter(function (k) { return state.warehouse[k] > 0; });
@@ -618,7 +618,8 @@
 
       function sync() {
         els.modal.hidden = false;
-        var html = '<div class="ff-modal-card"><h3>🚗 시장 출하</h3><p>슬롯 ' + slots + "/" + maxSlots + " · 예상 수익 <b>" + revenue.toLocaleString("ko-KR") + "원</b></p><div class="ff-car-grid">';
+        var html = '<div class="ff-modal-card"><h3>🚗 시장 출하</h3><p>슬롯 ' + slots + '/' + maxSlots +
+          ' · 예상 수익 <b>' + revenue.toLocaleString('ko-KR') + '원</b></p><div class="ff-car-grid">';
         Object.keys(GOODS).forEach(function (k) {
           var have = state.warehouse[k] || 0;
           var inLoad = load[k] || 0;

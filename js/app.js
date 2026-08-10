@@ -122,18 +122,27 @@
 
   function launchGame(id, skipAd) {
     var game = (window.GWGames || {})[id];
-    if (!game) return;
 
     function start() {
       stopGame();
       els.viewLobby.hidden = true;
       els.viewAdmin.hidden = true;
       els.viewGame.hidden = false;
+      location.hash = "game-" + id;
+
+      if (!game || typeof game.create !== "function") {
+        els.gameTitle.textContent = "게임 로드 실패";
+        els.gameHint.textContent = "스크립트를 불러오지 못했습니다. 새로고침 후 다시 시도하세요.";
+        els.gameScore.textContent = "0";
+        els.gameStage.innerHTML =
+          '<p style="padding:24px;color:#ffc857;text-align:center;">게임을 시작할 수 없습니다 (' + id + ").</p>";
+        return;
+      }
+
       els.gameTitle.textContent = game.title;
       els.gameHint.textContent = game.hint || "";
       els.gameScore.textContent = "0";
       els.gameStage.innerHTML = "";
-      location.hash = "game-" + id;
 
       if (window.GWAnalytics) GWAnalytics.trackGameStart(id);
 
