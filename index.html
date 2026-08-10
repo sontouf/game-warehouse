@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>게임창고 — 캐주얼 게임 아케이드</title>
+  <meta name="description" content="테트리스, 팜프렌지, 스네이크 등 캐주얼 게임을 무료로 즐기고 광고로 운영되는 웹 게임창고">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="config.js"></script>
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+
+  <header class="topbar">
+    <a class="brand" href="#lobby" data-nav="lobby">
+      <span class="brand-mark" aria-hidden="true">GW</span>
+      <span class="brand-text">
+        <strong id="site-name">게임창고</strong>
+        <small id="site-tagline">캐주얼 게임을 골라 바로 플레이</small>
+      </span>
+    </a>
+    <nav class="topnav">
+      <button type="button" class="nav-link is-active" data-nav="lobby">게임</button>
+      <button type="button" class="nav-link" data-nav="admin">관리자</button>
+    </nav>
+  </header>
+
+  <!-- Ad slot: top -->
+  <aside class="ad-rail ad-rail--top" id="ad-top" aria-label="광고 영역">
+    <div class="ad-slot" data-ad-slot="bannerTop"></div>
+  </aside>
+
+  <main id="app">
+    <!-- LOBBY -->
+    <section class="view view--lobby is-visible" id="view-lobby">
+      <div class="hero">
+        <p class="hero-kicker">WEB GAME ARCADE</p>
+        <h1 class="hero-title">게임창고</h1>
+        <p class="hero-desc">유명한 캐주얼부터 타임매니지먼트까지. 골라서 바로 즐기세요.</p>
+      </div>
+
+      <div class="game-grid" id="game-grid"></div>
+    </section>
+
+    <!-- GAME -->
+    <section class="view view--game" id="view-game" hidden>
+      <div class="game-chrome">
+        <button type="button" class="btn btn--ghost" id="btn-back">← 로비</button>
+        <h2 class="game-title" id="game-title"></h2>
+        <div class="game-scorewrap">
+          <span class="label">점수</span>
+          <strong id="game-score">0</strong>
+        </div>
+      </div>
+      <div class="game-stage" id="game-stage"></div>
+      <p class="game-hint" id="game-hint"></p>
+    </section>
+
+    <!-- ADMIN -->
+    <section class="view view--admin" id="view-admin" hidden>
+      <div class="admin-panel" id="admin-gate">
+        <h2>관리자 모드</h2>
+        <p>광고 이용자·수익 현황을 확인하려면 비밀번호를 입력하세요.</p>
+        <form id="admin-form" class="admin-form">
+          <label>
+            비밀번호
+            <input type="password" id="admin-password" autocomplete="current-password" required>
+          </label>
+          <button type="submit" class="btn btn--primary">입장</button>
+          <p class="admin-error" id="admin-error" hidden>비밀번호가 올바르지 않습니다.</p>
+        </form>
+        <p class="admin-hint">기본 비밀번호: <code>admin123</code> (config.js에서 변경)</p>
+      </div>
+
+      <div class="admin-dash" id="admin-dash" hidden>
+        <div class="admin-head">
+          <div>
+            <h2>수익·이용자 대시보드</h2>
+            <p>광고 노출·클릭과 추정 수익, 방문자 지표를 한눈에 봅니다.</p>
+          </div>
+          <div class="admin-actions">
+            <button type="button" class="btn btn--ghost" id="btn-refresh-stats">새로고침</button>
+            <button type="button" class="btn btn--danger" id="btn-reset-stats">통계 초기화</button>
+            <button type="button" class="btn btn--ghost" id="btn-logout">로그아웃</button>
+          </div>
+        </div>
+
+        <div class="stat-grid" id="stat-grid"></div>
+
+        <div class="admin-cards">
+          <article class="panel">
+            <h3>게임별 플레이</h3>
+            <ul class="rank-list" id="game-rank"></ul>
+          </article>
+          <article class="panel">
+            <h3>일별 추이 (최근 14일)</h3>
+            <div class="chart" id="daily-chart" role="img" aria-label="일별 방문자·수익 차트"></div>
+          </article>
+          <article class="panel panel--wide">
+            <h3>광고·수익 설정</h3>
+            <div class="settings-grid">
+              <label>
+                데모 CPM (원 / 1000노출)
+                <input type="number" id="cfg-cpm" min="0" step="100">
+              </label>
+              <label class="check">
+                <input type="checkbox" id="cfg-adsense">
+                AdSense 실광고 사용 (config.js의 client/slot 필요)
+              </label>
+              <button type="button" class="btn btn--primary" id="btn-save-cfg">설정 저장</button>
+            </div>
+            <p class="note">
+              실제 현금 수익은 Google AdSense 승인·도메인 등록 후 정산됩니다.
+              이 대시보드는 사이트 내 노출/클릭을 집계하고 CPM으로 추정 수익을 계산합니다.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Ad slot: bottom -->
+  <aside class="ad-rail ad-rail--bottom" id="ad-bottom" aria-label="광고 영역">
+    <div class="ad-slot" data-ad-slot="bannerBottom"></div>
+  </aside>
+
+  <!-- Interstitial ad overlay -->
+  <div class="ad-modal" id="ad-modal" hidden>
+    <div class="ad-modal__card">
+      <p class="ad-modal__label">광고 · <span id="ad-countdown">5</span>초 후 닫기</p>
+      <div class="ad-slot ad-slot--modal" data-ad-slot="interstitial"></div>
+      <button type="button" class="btn btn--primary" id="ad-close" disabled>계속하기</button>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <span>© 게임창고 · 광고로 운영되는 무료 웹 아케이드</span>
+    <button type="button" class="linkish" data-nav="admin">Admin</button>
+  </footer>
+
+  <script src="js/analytics.js"></script>
+  <script src="js/ads.js"></script>
+  <script src="js/games/tetris.js"></script>
+  <script src="js/games/snake.js"></script>
+  <script src="js/games/breakout.js"></script>
+  <script src="js/games/puzzle2048.js"></script>
+  <script src="js/games/farm.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
