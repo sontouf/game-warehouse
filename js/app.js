@@ -10,7 +10,7 @@
 
   function gameList() {
     var g = window.GWGames || {};
-    return ["tetris", "farm", "snake", "breakout", "puzzle2048"]
+    return ["tetris", "farm", "kart", "snake", "breakout", "puzzle2048"]
       .map(function (id) { return g[id]; })
       .filter(Boolean);
   }
