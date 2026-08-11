@@ -11,8 +11,33 @@
    */
 
   var SAVE_KEY = "gw-farm-frenzy-stage-v48";
-  var FIELD_W = 640;
-  var FIELD_H = 420;
+  var META_KEY = "gw-farm-frenzy-meta-v1";
+  var FIELD_W = 720;
+  var FIELD_H = 440;
+  var FIELD_PAD = 78; /* left/right building strip */
+
+  /* 별(스타) 상점 — GameFAQs shop star costs */
+  var STAR_SHOP = {
+    eggPlant: [100, 120, 130, 140, 150],
+    bakery: [120, 130, 140, 150, 160],
+    spinnery: [1000, 1200, 1300, 1400, 1500],
+    weave: [1200, 1300, 1400, 1500, 1600],
+    churn: [10000, 12000, 13000, 14000, 15000],
+    dairy: [12000, 13000, 14000, 15000, 16000],
+    well: [200, 400, 800, 8000],
+    store: [150, 300, 2000, 10000],
+    car: [100, 500, 2000, 15000],
+    cage: [100, 500, 5000]
+  };
+
+  var FACTORY_PLOTS = [
+    { fid: "eggPlant", side: "left", slot: 0 },
+    { fid: "bakery", side: "left", slot: 1 },
+    { fid: "spinnery", side: "left", slot: 2 },
+    { fid: "weave", side: "right", slot: 0 },
+    { fid: "churn", side: "right", slot: 1 },
+    { fid: "dairy", side: "right", slot: 2 }
+  ];
 
   /* Farm Frenzy 1 원작 가격표 (Wiki / GameFAQs) */
   var GOODS = {
@@ -93,6 +118,44 @@
     return 1 / pack;
   }
 
+  function defaultMeta() {
+    /* cap = 스테이지 내 코인 업그레이드 가능 상한(레벨 수). 별 상점에서 더 올림 */
+    return {
+      stars: 0,
+      factoryCap: { eggPlant: 2, bakery: 2, spinnery: 2, weave: 2, churn: 2, dairy: 2 },
+      wellCap: 2,
+      storeCap: 2,
+      carCap: 2,
+      cageLv: 0
+    };
+  }
+  function loadMeta() {
+    try {
+      return Object.assign(defaultMeta(), JSON.parse(localStorage.getItem(META_KEY) || "{}"));
+    } catch (e) {
+      return defaultMeta();
+    }
+  }
+  function saveMeta(meta) {
+    localStorage.setItem(META_KEY, JSON.stringify(meta));
+  }
+  function plotRect(plot) {
+    var y = 56 + plot.slot * 118;
+    if (plot.side === "left") {
+      return { x: 8, y: y, w: 64, h: 96, dropX: FIELD_PAD + 18, dropY: y + 70 };
+    }
+    return { x: FIELD_W - 72, y: y, w: 64, h: 96, dropX: FIELD_W - FIELD_PAD - 18, dropY: y + 70 };
+  }
+  function starsForClear(stageId, timeSec) {
+    var base = 70 + stageId * 12;
+    var mult = timeSec < 75 ? 1.5 : timeSec < 140 ? 1.2 : timeSec < 220 ? 1.0 : 0.75;
+    return Math.max(20, Math.floor(base * mult));
+  }
+  function starRank(timeSec) {
+    return timeSec < 75 ? 3 : timeSec < 140 ? 2 : 1;
+  }
+  function fieldX(x) { return clamp(x, FIELD_PAD + 16, FIELD_W - FIELD_PAD - 16); }
+  function fieldY(y) { return clamp(y, 48, FIELD_H - 28); }
   function uid() { return "e" + Math.random().toString(36).slice(2, 9); }
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function rand(a, b) { return a + Math.random() * (b - a); }
@@ -100,11 +163,13 @@
   function create(stageEl, api) {
     var maxUnlocked = Number(localStorage.getItem(SAVE_KEY) || 1);
     var stageIndex = Math.min(maxUnlocked, STAGES.length) - 1;
+    var meta = loadMeta();
     var running = false;
     var raf = 0;
     var lastTs = 0;
     var state = null;
     var toastTimer = 0;
+    var menuMode = "stages"; /* stages | shop */
 
     var root = document.createElement("div");
     root.className = "ff";
@@ -235,6 +300,11 @@
         var next = Math.max(maxUnlocked, state.stageId + 1);
         maxUnlocked = Math.min(next, STAGES.length);
         localStorage.setItem(SAVE_KEY, String(maxUnlocked));
+        meta = loadMeta();
+        state.lastStars = starsForClear(state.stageId, state.time);
+        state.lastRank = starRank(state.time);
+        meta.stars += state.lastStars;
+        saveMeta(meta);
         showResult(true);
       }
     }
@@ -242,7 +312,7 @@
     function spawnAnimal(kind, x, y) {
       var def = ANIMALS[kind];
       state.animals.push({
-        id: uid(), kind: kind, x: x || rand(60, FIELD_W - 60), y: y || rand(80, FIELD_H - 40),
+        id: uid(), kind: kind, x: x || rand(FIELD_PAD + 40, FIELD_W - FIELD_PAD - 40), y: y || rand(90, FIELD_H - 50),
         vx: rand(-1, 1) * def.speed, vy: rand(-1, 1) * def.speed,
         hunger: def.hungerMax * 0.7, full: 0, produceCd: def.produceTime * 0.4,
         alive: true, special: def.special || null
@@ -252,32 +322,40 @@
     function initStage(idx) {
       var conf = STAGES[idx];
       stageIndex = idx;
+      meta = loadMeta();
+      var startWell = Math.min(conf.wellLv, Math.max(0, meta.wellCap - 1));
+      var startStore = Math.min(conf.storeLv, Math.max(0, meta.storeCap - 1));
+      var startCar = Math.min(conf.carLv, Math.max(0, meta.carCap - 1));
       state = {
         stageId: conf.id,
         title: conf.title,
         money: conf.money,
         time: 0,
-        wellLv: conf.wellLv,
-        storeLv: conf.storeLv,
-        carLv: conf.carLv,
-        cageNeed: conf.cageClicks,
-        water: wellWater(conf.wellLv),
-        autoWell: conf.wellLv >= 3,
+        wellLv: startWell,
+        storeLv: startStore,
+        carLv: startCar,
+        cageNeed: Math.max(2, conf.cageClicks - meta.cageLv),
+        water: wellWater(startWell),
+        waterMax: wellWater(startWell),
+        autoWell: startWell >= 3,
         animals: [],
         drops: [],
         grasses: [],
         bears: [],
+        bearShadows: [],
+        flyFx: [],
         warehouse: {},
         collected: {},
         bearsCaught: 0,
         factories: {},
-        car: { busy: false, t: 0, load: {}, revenue: 0 },
+        car: { busy: false, t: 0, maxT: 0, load: {}, revenue: 0, phase: 0 },
         goals: conf.goals.map(function (g) { return Object.assign({ _done: false }, g); }),
         unlock: conf.unlock.slice(),
         availableFactories: (conf.availableFactories || []).slice(),
         bearEvery: conf.bearEvery,
         bearTimer: conf.bearEvery * 0.6,
         cleared: false,
+        lastStars: 0,
         sellingAnimal: null
       };
 
@@ -294,7 +372,7 @@
 
       // starter grass
       for (var g = 0; g < 8; g++) {
-        state.grasses.push({ x: rand(40, FIELD_W - 40), y: rand(60, FIELD_H - 30), hp: 3 });
+        state.grasses.push({ x: rand(FIELD_PAD + 30, FIELD_W - FIELD_PAD - 30), y: rand(70, FIELD_H - 40), hp: 3 });
       }
 
       els.menu.hidden = true;
@@ -309,19 +387,87 @@
       raf = requestAnimationFrame(loop);
     }
 
+    function buyStarUpgrade(key) {
+      meta = loadMeta();
+      var costs = STAR_SHOP[key];
+      if (!costs) return;
+      var costIdx;
+      if (key === "cage") costIdx = meta.cageLv;
+      else if (key === "well") costIdx = meta.wellCap - 1;
+      else if (key === "store") costIdx = meta.storeCap - 1;
+      else if (key === "car") costIdx = meta.carCap - 1;
+      else costIdx = (meta.factoryCap[key] || 1) - 1;
+      var cost = costs[costIdx];
+      if (cost == null) { toastMenu("이미 최대입니다."); return; }
+      if (meta.stars < cost) { toastMenu("별이 부족합니다. (필요 " + cost + ")"); return; }
+      meta.stars -= cost;
+      if (key === "well") meta.wellCap += 1;
+      else if (key === "store") meta.storeCap += 1;
+      else if (key === "car") meta.carCap += 1;
+      else if (key === "cage") meta.cageLv += 1;
+      else meta.factoryCap[key] = (meta.factoryCap[key] || 1) + 1;
+      saveMeta(meta);
+      renderMenu();
+    }
+    function toastMenu(msg) {
+      var el = els.menu.querySelector("#ff-shop-toast");
+      if (el) el.textContent = msg;
+    }
+    function shopRow(label, key, curLv) {
+      var costs = STAR_SHOP[key];
+      var cost = costs[curLv];
+      var maxed = cost == null;
+      return '<button type="button" class="ff-shop-btn" data-star-up="' + key + '"' + (maxed || meta.stars < (cost || 0) ? " disabled" : "") + ">" +
+        "<strong>" + label + "</strong>" +
+        "<span>현재 최대 Lv" + curLv + (maxed ? " · MAX" : " → Lv" + (curLv + 1)) + "</span>" +
+        "<em>" + (maxed ? "완료" : "⭐ " + cost) + "</em></button>";
+    }
     function renderMenu() {
       els.play.hidden = true;
       els.menu.hidden = false;
       running = false;
       cancelAnimationFrame(raf);
+      meta = loadMeta();
       if (!STAGES.length) {
         els.menu.innerHTML = '<div class="ff-menu-card"><h3>스테이지 로드 실패</h3><p>ff1-stages.js를 확인하세요.</p></div>';
         return;
       }
       var html = '<div class="ff-menu-card"><h3>🌾 팜프렌지 1탄</h3>' +
-        '<p>원작 48레벨 · 해금 ' + Math.min(maxUnlocked, STAGES.length) + '/' + STAGES.length +
-        ' · 미션/시작자금/시작동물은 GameFAQs 기준</p>' +
-        '<div class="ff-stage-list ff-stage-list--grid">';
+        '<div class="ff-menu-tabs">' +
+        '<button type="button" class="ff-tab' + (menuMode === "stages" ? " is-on" : "") + '" data-menu-tab="stages">스테이지</button>' +
+        '<button type="button" class="ff-tab' + (menuMode === "shop" ? " is-on" : "") + '" data-menu-tab="shop">별 상점</button>' +
+        '</div>' +
+        '<p class="ff-stars-line">보유 별 ⭐ <b id="ff-meta-stars">' + meta.stars.toLocaleString("ko-KR") + "</b> · 해금 " +
+        Math.min(maxUnlocked, STAGES.length) + "/" + STAGES.length +
+        " · 클리어 보상 별로 건물 최대 레벨을 올립니다</p>";
+
+      if (menuMode === "shop") {
+        html += '<p id="ff-shop-toast" class="ff-shop-toast">스테이지 클리어로 별을 모아 업그레이드하세요.</p>';
+        html += '<div class="ff-shop-grid">';
+        html += shopRow("우물 최대", "well", meta.wellCap - 1);
+        html += shopRow("창고 최대", "store", meta.storeCap - 1);
+        html += shopRow("자동차 최대", "car", meta.carCap - 1);
+        html += shopRow("케이지", "cage", meta.cageLv);
+        Object.keys(FACTORIES).forEach(function (fid) {
+          html += shopRow(FACTORIES[fid].emoji + " " + FACTORIES[fid].name, fid, (meta.factoryCap[fid] || 1) - 1);
+        });
+        html += "</div></div>";
+        els.menu.innerHTML = html;
+        els.menu.querySelectorAll("[data-menu-tab]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            menuMode = btn.getAttribute("data-menu-tab");
+            renderMenu();
+          });
+        });
+        els.menu.querySelectorAll("[data-star-up]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            buyStarUpgrade(btn.getAttribute("data-star-up"));
+          });
+        });
+        return;
+      }
+
+      html += '<div class="ff-stage-list ff-stage-list--grid">';
       STAGES.forEach(function (stage, i) {
         var locked = stage.id > maxUnlocked;
         var tip = stage.goals.map(goalLabel).join(" / ");
@@ -338,6 +484,12 @@
         "</ul><p>시작 자금 " + cur.money.toLocaleString("ko-KR") + "원</p>" +
         '<button type="button" class="btn btn--primary" id="ff-play-current">이 레벨 플레이</button></div></div>';
       els.menu.innerHTML = html;
+      els.menu.querySelectorAll("[data-menu-tab]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          menuMode = btn.getAttribute("data-menu-tab");
+          renderMenu();
+        });
+      });
       els.menu.querySelectorAll("[data-stage]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           initStage(Number(btn.getAttribute("data-stage")));
@@ -397,15 +549,19 @@
       html += "</div></div>";
 
       html += '<div class="ff-panel"><h4>🔧 장비 업그레이드</h4><div class="ff-btns">';
+      meta = loadMeta();
       var wu = wellUpCost(state.wellLv);
       var su = storeUpCost(state.storeLv);
       var cu = carUpCost(state.carLv);
-      html += '<button type="button" class="ff-mini" data-up="well" ' + (!wu ? "disabled" : "") + ">우물 Lv" + state.wellLv +
-        (wu ? "<small>" + wu + "원</small>" : "<small>MAX</small>") + "</button>";
-      html += '<button type="button" class="ff-mini" data-up="store" ' + (!su ? "disabled" : "") + ">창고 Lv" + state.storeLv +
-        (su ? "<small>" + su + "원</small>" : "<small>MAX</small>") + "</button>";
-      html += '<button type="button" class="ff-mini" data-up="car" ' + (!cu ? "disabled" : "") + ">자동차 Lv" + state.carLv +
-        (cu ? "<small>" + cu + "원</small>" : "<small>MAX</small>") + "</button>";
+      var wellBlocked = !wu || state.wellLv + 1 >= meta.wellCap;
+      var storeBlocked = !su || state.storeLv + 1 >= meta.storeCap;
+      var carBlocked = !cu || state.carLv + 1 >= meta.carCap;
+      html += '<button type="button" class="ff-mini" data-up="well" ' + (wellBlocked ? "disabled" : "") + ">우물 Lv" + state.wellLv +
+        (wellBlocked ? "<small>" + (!wu ? "MAX" : "별상점 상한") + "</small>" : "<small>" + wu + "원</small>") + "</button>";
+      html += '<button type="button" class="ff-mini" data-up="store" ' + (storeBlocked ? "disabled" : "") + ">창고 Lv" + state.storeLv +
+        (storeBlocked ? "<small>" + (!su ? "MAX" : "별상점 상한") + "</small>" : "<small>" + su + "원</small>") + "</button>";
+      html += '<button type="button" class="ff-mini" data-up="car" ' + (carBlocked ? "disabled" : "") + ">자동차 Lv" + state.carLv +
+        (carBlocked ? "<small>" + (!cu ? "MAX" : "별상점 상한") + "</small>" : "<small>" + cu + "원</small>") + "</button>";
       html += "</div></div>";
 
       html += '<div class="ff-panel"><h4>🏭 가공 건물</h4><div class="ff-btns">';
@@ -419,11 +575,15 @@
             " 구매<small>" + f.buy.toLocaleString("ko-KR") + "원</small></button>";
         } else {
           var up = f.upCost[st.lv];
+          var fcap = (meta.factoryCap && meta.factoryCap[fid]) || 2;
           var busy = st.busy ? " ⏳" : "";
-          html += '<button type="button" class="ff-mini" data-run-factory="' + fid + '">' + f.emoji + " " + f.name + " Lv" + st.lv + busy +
+          html += '<button type="button" class="ff-mini" data-run-factory="' + fid + '">' + f.emoji + " " + f.name + " Lv" + st.lv +
+            " ×" + (1 + st.lv) + busy +
             "<small>" + GOODS[f.from].emoji + "→" + GOODS[f.to].emoji + (st.busy ? " " + Math.ceil(st.t) + "s" : "") + "</small></button>";
-          if (up) {
+          if (up && st.lv + 1 < fcap) {
             html += '<button type="button" class="ff-mini ff-mini--sub" data-up-factory="' + fid + '">업그레이드<small>' + up.toLocaleString("ko-KR") + "원</small></button>";
+          } else if (up) {
+            html += '<button type="button" class="ff-mini ff-mini--sub" disabled>업그레이드<small>별상점 상한</small></button>';
           }
         }
       });
@@ -470,6 +630,7 @@
         if (state.autoWell) { toast("최고 우물은 자동으로 물을 씁니다."); return; }
         if (!spend(cost)) return;
         state.water = wellWater(state.wellLv);
+        state.waterMax = state.water;
         toast("우물에 물을 채웠습니다.");
         renderRight();
         updateHud();
@@ -518,21 +679,35 @@
       root.querySelectorAll("[data-up]").forEach(function (btn) {
         btn.addEventListener("click", function () {
           var t = btn.getAttribute("data-up");
+          meta = loadMeta();
           if (t === "well") {
             var c = wellUpCost(state.wellLv);
-            if (!c || !spend(c)) return;
+            if (!c || state.wellLv + 1 >= meta.wellCap) {
+              if (state.wellLv + 1 >= meta.wellCap) toast("별 상점에서 우물 최대 레벨을 올리세요!");
+              if (!c || state.wellLv + 1 >= meta.wellCap) return;
+            }
+            if (!spend(c)) return;
             state.wellLv += 1;
             state.autoWell = state.wellLv >= 3;
             state.water = wellWater(state.wellLv);
+            state.waterMax = wellWater(state.wellLv);
             toast("우물 업그레이드!");
           } else if (t === "store") {
             var c2 = storeUpCost(state.storeLv);
-            if (!c2 || !spend(c2)) return;
+            if (!c2 || state.storeLv + 1 >= meta.storeCap) {
+              if (state.storeLv + 1 >= meta.storeCap) toast("별 상점에서 창고 최대 레벨을 올리세요!");
+              if (!c2 || state.storeLv + 1 >= meta.storeCap) return;
+            }
+            if (!spend(c2)) return;
             state.storeLv += 1;
             toast("창고 확장!");
           } else if (t === "car") {
             var c3 = carUpCost(state.carLv);
-            if (!c3 || !spend(c3)) return;
+            if (!c3 || state.carLv + 1 >= meta.carCap) {
+              if (state.carLv + 1 >= meta.carCap) toast("별 상점에서 자동차 최대 레벨을 올리세요!");
+              if (!c3 || state.carLv + 1 >= meta.carCap) return;
+            }
+            if (!spend(c3)) return;
             state.carLv += 1;
             toast("자동차 업그레이드!");
           }
@@ -556,9 +731,15 @@
           var f = FACTORIES[fid];
           var st = state.factories[fid];
           var c = f.upCost[st.lv];
-          if (!c || !spend(c)) return;
+          meta = loadMeta();
+          var fcap = meta.factoryCap[fid] || 1;
+          if (!c || st.lv + 1 >= fcap) {
+            if (st.lv + 1 >= fcap) toast("별 상점에서 " + f.name + " 최대 레벨을 올리세요!");
+            if (!c || st.lv + 1 >= fcap) return;
+          }
+          if (!spend(c)) return;
           st.lv += 1;
-          toast(f.name + " 업그레이드!");
+          toast(f.name + " 업그레이드! 배치 " + (1 + st.lv) + "개");
           renderLeft();
           updateHud();
         });
@@ -582,7 +763,21 @@
       state.warehouse[f.from] -= batch;
       st.busy = true;
       st.t = Math.max(2.5, f.time - st.lv * 0.5);
+      st.maxT = st.t;
       st.out = batch;
+      var plot = FACTORY_PLOTS.find(function (p) { return p.fid === fid; });
+      var pr = plot ? plotRect(plot) : { x: FIELD_W / 2, y: 80 };
+      for (var i = 0; i < batch; i++) {
+        state.flyFx.push({
+          good: f.from,
+          x: FIELD_W / 2 + rand(-20, 20),
+          y: FIELD_H - 36,
+          tx: pr.x + pr.w / 2,
+          ty: pr.y + 40,
+          life: 0.55 + i * 0.08,
+          max: 0.55 + i * 0.08
+        });
+      }
       toast(f.name + " 가동! (" + batch + "개 가공)");
       renderAllUi();
     }
@@ -636,8 +831,10 @@
           });
           state.car.busy = true;
           state.car.t = carTime(state.carLv);
+          state.car.maxT = state.car.t;
           state.car.revenue = revenue;
           state.car.load = load;
+          state.car.phase = 0;
           els.modal.hidden = true;
           toast("자동차가 시장으로 출발!");
           renderRight();
@@ -671,16 +868,28 @@
 
     function showResult(win) {
       els.modal.hidden = false;
+      var starLine = "";
+      if (win) {
+        var rank = state.lastRank || 1;
+        starLine = "<p class=\"ff-star-reward\">" +
+          "⭐".repeat(rank) + "☆".repeat(3 - rank) +
+          " · 별 +" + (state.lastStars || 0).toLocaleString("ko-KR") +
+          " (보유 " + loadMeta().stars.toLocaleString("ko-KR") + ")</p>" +
+          '<button type="button" class="btn btn--ghost" id="ff-res-shop">별 상점 열기</button>';
+      }
       els.modal.innerHTML =
         '<div class="ff-modal-card"><h3>' + (win ? "🎉 스테이지 클리어!" : "실패") + "</h3>" +
         "<p>" + state.title + " · 시간 " + els.time.textContent + " · 자금 " + Math.floor(state.money).toLocaleString("ko-KR") + "원</p>" +
+        starLine +
         '<div class="ff-modal-actions">' +
         '<button type="button" class="btn btn--ghost" id="ff-res-menu">스테이지 선택</button>' +
         (win && stageIndex < STAGES.length - 1
           ? '<button type="button" class="btn btn--primary" id="ff-res-next">다음 스테이지</button>'
           : '<button type="button" class="btn btn--primary" id="ff-res-retry">다시 하기</button>') +
         "</div></div>";
-      els.modal.querySelector("#ff-res-menu").onclick = renderMenu;
+      els.modal.querySelector("#ff-res-menu").onclick = function () { menuMode = "stages"; renderMenu(); };
+      var shop = els.modal.querySelector("#ff-res-shop");
+      if (shop) shop.onclick = function () { menuMode = "shop"; renderMenu(); };
       var next = els.modal.querySelector("#ff-res-next");
       if (next) next.onclick = function () { initStage(stageIndex + 1); };
       var retry = els.modal.querySelector("#ff-res-retry");
@@ -688,6 +897,7 @@
     }
 
     function plantGrass(x, y) {
+      if (x < FIELD_PAD + 10 || x > FIELD_W - FIELD_PAD - 10) return;
       if (state.autoWell) {
         if (!spend(wellRefillCost(state.wellLv))) return;
       } else {
@@ -711,11 +921,39 @@
       return -1;
     }
 
+    function hitPlot(x, y) {
+      for (var i = 0; i < FACTORY_PLOTS.length; i++) {
+        var plot = FACTORY_PLOTS[i];
+        var r = plotRect(plot);
+        if (x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h) return plot;
+      }
+      return null;
+    }
     function onCanvasClick(e) {
       if (!running || !state) return;
       var rect = els.canvas.getBoundingClientRect();
       var x = (e.clientX - rect.left) * (FIELD_W / rect.width);
       var y = (e.clientY - rect.top) * (FIELD_H / rect.height);
+
+      var plotHit = hitPlot(x, y);
+      if (plotHit) {
+        var st = state.factories[plotHit.fid];
+        var f = FACTORIES[plotHit.fid];
+        if (!st.owned) {
+          if (state.availableFactories.indexOf(plotHit.fid) === -1) {
+            toast("이 스테이지에서는 " + f.name + "을(를) 지을 수 없습니다.");
+            return;
+          }
+          if (!spend(f.buy)) return;
+          st.owned = true;
+          toast(f.name + " 설치!");
+          renderLeft();
+          updateHud();
+          return;
+        }
+        runFactory(plotHit.fid);
+        return;
+      }
 
       var bi = hitTest(state.bears, x, y, 28);
       if (bi >= 0) {
@@ -782,6 +1020,15 @@
         }
       }
 
+      // fly materials warehouse → factory
+      state.flyFx.forEach(function (fx) {
+        fx.life -= dt;
+        var p = 1 - Math.max(0, fx.life) / fx.max;
+        fx.cx = fx.x + (fx.tx - fx.x) * p;
+        fx.cy = fx.y + (fx.ty - fx.y) * p - Math.sin(p * Math.PI) * 40;
+      });
+      state.flyFx = state.flyFx.filter(function (fx) { return fx.life > 0; });
+
       // factories
       Object.keys(state.factories).forEach(function (fid) {
         var st = state.factories[fid];
@@ -790,29 +1037,31 @@
         if (st.t <= 0) {
           var f = FACTORIES[fid];
           st.busy = false;
-          // drop processed goods on field near right side
+          var plot = FACTORY_PLOTS.find(function (p) { return p.fid === fid; });
+          var pr = plot ? plotRect(plot) : { dropX: FIELD_W / 2, dropY: FIELD_H / 2 };
           for (var i = 0; i < st.out; i++) {
             state.drops.push({
               id: uid(), good: f.to,
-              x: rand(FIELD_W * 0.55, FIELD_W - 40),
-              y: rand(80, FIELD_H - 40),
-              life: GOODS[f.to].spoil
+              x: pr.dropX + rand(-10, 10) + (plot && plot.side === "left" ? i * 10 : -i * 10),
+              y: pr.dropY + rand(-6, 6),
+              life: GOODS[f.to].spoil,
+              pickup: true
             });
           }
-          toast(f.name + " 완성! 밭에서 수거하세요.");
+          toast(f.name + " 완성! 건물 앞에서 수거하세요.");
           renderLeft();
         }
       });
 
-      // bears spawn
-      state.bearTimer -= dt;
-      if (state.bearTimer <= 0) {
-        state.bearTimer = state.bearEvery + rand(-2, 3);
+      // bear foreshadow then spawn
+      state.bearShadows.forEach(function (sh) { sh.t -= dt; });
+      state.bearShadows.filter(function (sh) { return sh.t <= 0 && !sh.spawned; }).forEach(function (sh) {
+        sh.spawned = true;
         var dog = state.animals.find(function (a) { return a.alive && a.special === "dog"; });
         state.bears.push({
           id: uid(),
-          x: rand(80, FIELD_W - 80),
-          y: rand(50, 120),
+          x: sh.x,
+          y: sh.y,
           vx: rand(-20, 20),
           vy: rand(10, 35),
           clicks: 0,
@@ -821,6 +1070,20 @@
           heldByDog: !!dog
         });
         toast(dog ? "🐻 곰 출현! 개가 견제 중" : "🐻 곰 출현! 연타로 가두세요!");
+      });
+      state.bearShadows = state.bearShadows.filter(function (sh) { return !sh.spawned; });
+
+      state.bearTimer -= dt;
+      if (state.bearTimer <= 0) {
+        state.bearTimer = state.bearEvery + rand(-2, 3);
+        state.bearShadows.push({
+          x: rand(FIELD_PAD + 50, FIELD_W - FIELD_PAD - 50),
+          y: rand(70, 140),
+          t: 1.4,
+          max: 1.4,
+          spawned: false
+        });
+        toast("⚠️ 곰이 곧 내려옵니다…");
       }
 
       // bears move / attack
@@ -833,8 +1096,8 @@
           b.x += Math.sin(state.time * 3) * 8 * dt;
           return;
         }
-        b.x = clamp(b.x + b.vx * dt, 30, FIELD_W - 30);
-        b.y = clamp(b.y + b.vy * dt, 40, FIELD_H - 30);
+        b.x = clamp(b.x + b.vx * dt, FIELD_PAD + 20, FIELD_W - FIELD_PAD - 20);
+        b.y = clamp(b.y + b.vy * dt, 48, FIELD_H - 30);
         if (Math.random() < 0.02) { b.vx = rand(-40, 40); b.vy = rand(-30, 40); }
 
         state.animals.forEach(function (a) {
@@ -905,10 +1168,10 @@
           }
         }
 
-        a.x = clamp(a.x + a.vx * dt, 24, FIELD_W - 24);
-        a.y = clamp(a.y + a.vy * dt, 40, FIELD_H - 24);
-        if (a.x <= 24 || a.x >= FIELD_W - 24) a.vx *= -1;
-        if (a.y <= 40 || a.y >= FIELD_H - 24) a.vy *= -1;
+        a.x = fieldX(a.x + a.vx * dt);
+        a.y = fieldY(a.y + a.vy * dt);
+        if (a.x <= FIELD_PAD + 16 || a.x >= FIELD_W - FIELD_PAD - 16) a.vx *= -1;
+        if (a.y <= 48 || a.y >= FIELD_H - 28) a.vy *= -1;
 
         if (a.hunger <= 0) {
           a.alive = false;
@@ -921,8 +1184,8 @@
           a.produceCd = def.produceTime;
           state.drops.push({
             id: uid(), good: def.produce,
-            x: clamp(a.x + rand(-10, 10), 30, FIELD_W - 30),
-            y: clamp(a.y + rand(-10, 10), 40, FIELD_H - 30),
+            x: fieldX(a.x + rand(-10, 10)),
+            y: fieldY(a.y + rand(-10, 10)),
             life: GOODS[def.produce].spoil
           });
         }
@@ -951,20 +1214,126 @@
       checkGoals();
     }
 
+    function drawPlots() {
+      FACTORY_PLOTS.forEach(function (plot) {
+        var r = plotRect(plot);
+        var st = state.factories[plot.fid];
+        var f = FACTORIES[plot.fid];
+        var canBuild = state.availableFactories.indexOf(plot.fid) !== -1;
+        ctx.fillStyle = st.owned ? "rgba(40,28,18,0.75)" : (canBuild ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.25)");
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.strokeStyle = st.owned ? "rgba(255,200,100,0.55)" : "rgba(255,255,255,0.2)";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(r.x + 1, r.y + 1, r.w - 2, r.h - 2);
+        if (!st.owned) {
+          ctx.fillStyle = "rgba(255,255,255,0.55)";
+          ctx.font = "11px IBM Plex Sans KR, sans-serif";
+          ctx.fillText(canBuild ? "빈 부지" : "잠김", r.x + 12, r.y + 52);
+          if (canBuild) {
+            ctx.font = "20px serif";
+            ctx.fillText(f.emoji, r.x + 20, r.y + 34);
+          }
+          return;
+        }
+        ctx.font = "22px serif";
+        ctx.fillText(f.emoji, r.x + 18, r.y + 32);
+        ctx.fillStyle = "#f0e6d0";
+        ctx.font = "10px IBM Plex Sans KR, sans-serif";
+        ctx.fillText("Lv" + st.lv + " ×" + (1 + st.lv), r.x + 8, r.y + 48);
+        if (st.busy) {
+          var prog = 1 - st.t / (st.maxT || st.t || 1);
+          ctx.fillStyle = "rgba(0,0,0,0.45)";
+          ctx.fillRect(r.x + 8, r.y + 58, r.w - 16, 8);
+          ctx.fillStyle = "#ffc857";
+          ctx.fillRect(r.x + 8, r.y + 58, (r.w - 16) * clamp(prog, 0, 1), 8);
+          ctx.fillStyle = "#fff";
+          ctx.fillText("가공중", r.x + 14, r.y + 80);
+        } else {
+          ctx.fillStyle = "rgba(255,255,255,0.65)";
+          ctx.fillText("클릭 가공", r.x + 8, r.y + 72);
+        }
+      });
+    }
+    function drawWellStoreCar() {
+      // well (bottom-left of field)
+      var wx = FIELD_PAD + 28, wy = FIELD_H - 52;
+      ctx.fillStyle = "#5a6a78";
+      ctx.beginPath();
+      ctx.ellipse(wx, wy, 22, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+      var wMax = state.waterMax || wellWater(state.wellLv);
+      var wr = state.autoWell ? 1 : clamp(state.water / Math.max(1, wMax), 0, 1);
+      ctx.fillStyle = "rgba(80,180,255," + (0.35 + wr * 0.5) + ")";
+      ctx.beginPath();
+      ctx.ellipse(wx, wy + 2 - wr * 4, 16, 7 * wr + 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = "16px serif";
+      ctx.fillText("🪣", wx - 10, wy - 10);
+      ctx.fillStyle = "#dfefff";
+      ctx.font = "10px IBM Plex Sans KR, sans-serif";
+      ctx.fillText(state.autoWell ? "AUTO" : ("물 " + state.water), wx - 14, wy + 22);
+
+      // warehouse (bottom center)
+      var sx = FIELD_W / 2, sy = FIELD_H - 40;
+      var fill = usedSlots() / Math.max(1, storeCap(state.storeLv));
+      ctx.fillStyle = "#6b4f2e";
+      ctx.fillRect(sx - 36, sy - 22, 72, 34);
+      ctx.fillStyle = "#8a6840";
+      ctx.fillRect(sx - 36, sy - 28, 72, 10);
+      ctx.fillStyle = "rgba(0,0,0,0.35)";
+      ctx.fillRect(sx - 30, sy - 8, 60, 8);
+      ctx.fillStyle = fill > 0.85 ? "#ff5d7a" : "#ffc857";
+      ctx.fillRect(sx - 30, sy - 8, 60 * clamp(fill, 0, 1), 8);
+      ctx.font = "14px serif";
+      ctx.fillText("🏚️", sx - 10, sy - 10);
+      ctx.fillStyle = "#fff4d8";
+      ctx.font = "10px IBM Plex Sans KR, sans-serif";
+      ctx.fillText(Math.round(fill * 100) + "%", sx - 10, sy + 18);
+
+      // car path / car
+      var cy = FIELD_H - 18;
+      ctx.strokeStyle = "rgba(255,255,255,0.18)";
+      ctx.setLineDash([6, 6]);
+      ctx.beginPath();
+      ctx.moveTo(FIELD_PAD + 50, cy);
+      ctx.lineTo(FIELD_W - FIELD_PAD - 20, cy);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      var cx;
+      if (state.car.busy) {
+        var p = 1 - state.car.t / Math.max(0.01, state.car.maxT || state.car.t);
+        if (p < 0.5) cx = FIELD_PAD + 60 + (FIELD_W - FIELD_PAD * 2 - 80) * (p / 0.5);
+        else cx = FIELD_W - FIELD_PAD - 20 - (FIELD_W - FIELD_PAD * 2 - 80) * ((p - 0.5) / 0.5);
+      } else {
+        cx = FIELD_PAD + 60;
+      }
+      ctx.font = "22px serif";
+      ctx.fillText("🚗", cx - 12, cy + 2);
+      if (state.car.busy) {
+        ctx.fillStyle = "#ffc857";
+        ctx.font = "10px IBM Plex Sans KR, sans-serif";
+        ctx.fillText("시장", cx - 10, cy - 14);
+      }
+    }
     function draw() {
-      // field
       var grd = ctx.createLinearGradient(0, 0, 0, FIELD_H);
       grd.addColorStop(0, "#2f5d34");
       grd.addColorStop(1, "#1d3f24");
       ctx.fillStyle = grd;
       ctx.fillRect(0, 0, FIELD_W, FIELD_H);
 
-      // fence
-      ctx.strokeStyle = "rgba(255,255,255,0.15)";
-      ctx.lineWidth = 4;
-      ctx.strokeRect(8, 8, FIELD_W - 16, FIELD_H - 16);
+      // side strips
+      ctx.fillStyle = "rgba(20,14,8,0.35)";
+      ctx.fillRect(0, 0, FIELD_PAD, FIELD_H);
+      ctx.fillRect(FIELD_W - FIELD_PAD, 0, FIELD_PAD, FIELD_H);
 
-      // grass
+      ctx.strokeStyle = "rgba(255,255,255,0.12)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(FIELD_PAD, 12, FIELD_W - FIELD_PAD * 2, FIELD_H - 24);
+
+      drawPlots();
+      drawWellStoreCar();
+
       state.grasses.forEach(function (g) {
         ctx.font = "18px serif";
         ctx.globalAlpha = clamp(g.hp / 3, 0.4, 1);
@@ -972,18 +1341,43 @@
         ctx.globalAlpha = 1;
       });
 
-      // drops
+      state.bearShadows.forEach(function (sh) {
+        var a = 0.25 + 0.35 * (1 - sh.t / sh.max);
+        ctx.fillStyle = "rgba(0,0,0," + a + ")";
+        ctx.beginPath();
+        ctx.ellipse(sh.x, sh.y + 8, 22, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,100,80," + (0.4 + a) + ")";
+        ctx.setLineDash([4, 4]);
+        ctx.strokeRect(sh.x - 20, sh.y - 24, 40, 40);
+        ctx.setLineDash([]);
+        ctx.fillStyle = "rgba(255,180,120,0.9)";
+        ctx.font = "11px IBM Plex Sans KR, sans-serif";
+        ctx.fillText("곰!", sh.x - 10, sh.y - 28);
+      });
+
       state.drops.forEach(function (d) {
-        ctx.font = "20px serif";
+        ctx.font = d.pickup ? "24px serif" : "20px serif";
         ctx.fillText(GOODS[d.good].emoji, d.x - 10, d.y + 6);
+        if (d.pickup) {
+          ctx.fillStyle = "rgba(255,200,80,0.25)";
+          ctx.beginPath();
+          ctx.arc(d.x, d.y, 16, 0, Math.PI * 2);
+          ctx.fill();
+        }
         if (d.life < 5) {
           ctx.fillStyle = "rgba(255,93,122,0.8)";
           ctx.fillRect(d.x - 10, d.y + 10, 20 * (d.life / 5), 3);
-          ctx.fillStyle = "#fff";
         }
       });
 
-      // animals
+      state.flyFx.forEach(function (fx) {
+        ctx.globalAlpha = clamp(fx.life / fx.max, 0.2, 1);
+        ctx.font = "16px serif";
+        ctx.fillText(GOODS[fx.good].emoji, (fx.cx || fx.x) - 8, (fx.cy || fx.y) + 4);
+        ctx.globalAlpha = 1;
+      });
+
       state.animals.forEach(function (a) {
         if (!a.alive) return;
         var def = ANIMALS[a.kind];
@@ -998,7 +1392,6 @@
         }
       });
 
-      // bears
       state.bears.forEach(function (b) {
         ctx.font = "28px serif";
         ctx.fillText("🐻", b.x - 14, b.y + 10);
@@ -1056,7 +1449,7 @@
     desc: "원작 48레벨 · 거위·양·소·개·고양이 · GameFAQs 미션 그대로",
     tags: ["시뮬레이션", "48레벨"],
     accent: "#3dd68c",
-    hint: "원작 팜프렌지 1 스테이지/미션 · 우물→풀 · 산물/곰 · 공장 · 자동차 판매",
+    hint: "별 상점 · 양옆 건물 부지 · 가공 게이지 · 자동차/창고/우물/곰 예고 시각화",
     create: create
   };
 })(window);

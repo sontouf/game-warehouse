@@ -698,6 +698,66 @@ main {
 
 .ff-menu-card > p { color: var(--muted); margin: 0 0 16px; }
 
+.ff-menu-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.ff-tab {
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.04);
+  color: inherit;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font: inherit;
+  cursor: pointer;
+}
+.ff-tab.is-on {
+  border-color: var(--ok);
+  background: rgba(61, 214, 140, 0.15);
+  color: var(--ok);
+  font-weight: 700;
+}
+.ff-stars-line {
+  color: var(--gold) !important;
+  font-weight: 600;
+}
+.ff-shop-toast {
+  min-height: 1.2em;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 0 0 10px;
+}
+.ff-shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+.ff-shop-btn {
+  text-align: left;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,0.03);
+  color: inherit;
+  border-radius: 14px;
+  padding: 12px;
+  cursor: pointer;
+  display: grid;
+  gap: 4px;
+  font: inherit;
+}
+.ff-shop-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+.ff-shop-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.ff-shop-btn strong { font-size: 0.95rem; }
+.ff-shop-btn span { color: var(--muted); font-size: 0.82rem; }
+.ff-shop-btn em { font-style: normal; color: var(--gold); font-weight: 700; font-size: 0.85rem; }
+.ff-star-reward {
+  color: var(--gold);
+  font-weight: 700;
+  margin: 8px 0;
+}
+
 .ff-stage-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
