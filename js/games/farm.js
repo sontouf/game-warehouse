@@ -88,8 +88,10 @@
     dairy: { name: "치즈공장", emoji: "🧀", from: "butter", to: "cheese", buy: 40000, upCost: [60000, 80000, 100000, 120000], time: 8 }
   };
 
-  /* 원작 48레벨: js/games/ff1-stages.js */
-  var STAGES = (typeof window !== "undefined" && window.FF1_STAGES) ? window.FF1_STAGES : [];
+  /* 원작 48레벨: js/games/farm-stages.js */
+  var STAGES = (typeof window !== "undefined" && (window.FARM_STAGES || window.FF1_STAGES))
+    ? (window.FARM_STAGES || window.FF1_STAGES)
+    : [];
 
   /*
    * 용량 설계 (전 스테이지 공통)
@@ -550,7 +552,7 @@
       cancelAnimationFrame(raf);
       meta = loadMeta();
       if (!STAGES.length) {
-        els.menu.innerHTML = '<div class="ff-menu-card"><h3>스테이지 로드 실패</h3><p>ff1-stages.js를 확인하세요.</p></div>';
+        els.menu.innerHTML = '<div class="ff-menu-card"><h3>스테이지 로드 실패</h3><p>farm-stages.js를 확인하세요.</p></div>';
         return;
       }
       var html = '<div class="ff-menu-card"><h3>🌾 팜프렌지 1탄</h3>' +

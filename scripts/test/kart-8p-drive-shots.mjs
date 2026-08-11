@@ -1,5 +1,5 @@
 /**
- * 8인 레이스 주행거리 10%마다 스크린샷 촬영
+ * 8???�이??주행거리 10%마다 ?�크린샷 촬영
  */
 import { chromium } from "playwright";
 import http from "http";
@@ -8,7 +8,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.join(__dirname, "..");
+const ROOT = path.join(__dirname, "..", "..");
 const OUT = path.join(ROOT, "test-results", "kart-8p", "drive");
 const PORT = 8766;
 
@@ -22,7 +22,7 @@ function contentType(file) {
 function startServer() {
   const server = http.createServer((req, res) => {
     let urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
-    if (urlPath === "/") urlPath = "/kart-sim.html";
+    if (urlPath === "/") urlPath = "/tools/kart-sim.html";
     const file = path.join(ROOT, urlPath.replace(/^\//, ""));
     if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
       res.writeHead(404);
@@ -54,7 +54,7 @@ async function main() {
   const log = [];
 
   try {
-    await page.goto(`http://127.0.0.1:${PORT}/kart-sim.html`, { waitUntil: "networkidle", timeout: 60000 });
+    await page.goto(`http://127.0.0.1:${PORT}/tools/kart-sim.html`, { waitUntil: "networkidle", timeout: 60000 });
     await page.waitForFunction(() => window.__SIM_READY__ === true, { timeout: 30000 });
 
     await page.evaluate(() => {
@@ -96,7 +96,7 @@ async function main() {
           const pct = marks[nextIdx++];
           const name = `drive-${String(pct).padStart(2, "0")}pct.png`;
           taken.push(await shot(page, name));
-          log.push({ pct, note: "race already finished — result/end frame", ...prog });
+          log.push({ pct, note: "race already finished ??result/end frame", ...prog });
         }
         break;
       }
@@ -152,23 +152,23 @@ async function main() {
     fs.writeFileSync(
       path.join(OUT, "README.md"),
       [
-        "# 8인 주행 거리 10% 스크린샷",
+        "# 8??주행 거리 10% ?�크린샷",
         "",
-        `- 맵: village (빌리지 손가락)`,
-        `- 랩: 2`,
-        `- 플레이어: 8 (Player1 + Bot1~7)`,
-        `- 기준: 선두 주행거리 %`,
+        `- �? village (빌리지 ?��???`,
+        `- ?? 2`,
+        `- ?�레?�어: 8 (Player1 + Bot1~7)`,
+        `- 기�?: ?�두 주행거리 %`,
         "",
-        "## 파일",
+        "## ?�일",
         ...taken.map((t) => `- ${t}`),
         "",
-        "## 마일스톤",
+        "## 마일?�톤",
         ...log.map((m) => `- ${m.pct}% · lap ${m.lap || "-"}/${m.laps || "-"} · ${m.meKmh || 0}km/h · ${m.phase || m.note || ""}`),
         ""
       ].join("\n")
     );
 
-    console.log("\nDONE", taken.length, "screenshots →", OUT);
+    console.log("\nDONE", taken.length, "screenshots ??, OUT);
     if (taken.length < 11) {
       console.warn("WARN: expected ~11 drive shots (0+10..100), got", taken.length);
       process.exitCode = 1;

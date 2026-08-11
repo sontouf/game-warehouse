@@ -1,0 +1,14 @@
+{
+  "name": "bracket-program",
+  "version": "1.0.0",
+  "description": "수련회 코스게임 대진표 프로그램 (웹, 모바일 지원, 실시간)",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.21.0"
+  }
+}

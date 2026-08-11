@@ -1,11 +1,17 @@
 {
-  "name": "money",
+  "name": "game-warehouse",
   "version": "1.0.0",
-  "description": "웹에서 캐주얼 게임을 골라 바로 플레이하는 **게임 아케이드**입니다.   광고로 수익을 낼 수 있고, 관리자 모드에서 이용자·광고·추정 수익을 확인할 수 있습니다.",
+  "description": "게임창고 — 캐주얼·멀티플레이 웹 아케이드 (P2P 미니게임·랭킹)",
   "main": "config.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test:kart-8p": "node scripts/kart-8p-loadtest.mjs"
+    "build:minihub": "node scripts/build/build-minihub-client.mjs",
+    "test:kart-8p": "node scripts/test/kart-8p-loadtest.mjs",
+    "test:kart-mobile-net": "node scripts/test/kart-mobile-net-loadtest.mjs",
+    "test:kart-peer": "node scripts/test/kart-peer-handshake.mjs",
+    "shot:ads": "node scripts/test/ad-game-screenshots.mjs",
+    "shot:controls": "node scripts/test/control-layout-screenshots.mjs",
+    "shot:ratios": "node scripts/test/control-ratio-screenshots.mjs",
+    "shot:aspects": "node scripts/test/control-aspect-screenshots.mjs"
   },
   "repository": {
     "type": "git",

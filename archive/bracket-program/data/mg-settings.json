@@ -1,0 +1,113 @@
+{
+  "settingsPasswordHash": "1584d30826d93ef39a43b73c380dff75398a4497469162403f113d2b9c8f8599",
+  "controlLayouts": {
+    "arena": {
+      "joy": {
+        "right": null,
+        "left": 4.4,
+        "bottom": 2.2,
+        "w": 120,
+        "h": 120
+      },
+      "dash": {
+        "right": 28,
+        "left": null,
+        "bottom": 4.5,
+        "w": 64,
+        "h": 64
+      },
+      "shoot": {
+        "right": 4.4,
+        "left": null,
+        "bottom": 3.5,
+        "w": 86,
+        "h": 86
+      }
+    },
+    "cops_relic_thief": {
+      "joy": {
+        "right": null,
+        "left": 4.4,
+        "bottom": 2.2,
+        "w": 120,
+        "h": 120
+      },
+      "interact": {
+        "right": 4.4,
+        "left": null,
+        "bottom": 18,
+        "w": 78,
+        "h": 78
+      },
+      "dash": {
+        "right": 4.4,
+        "left": null,
+        "bottom": 3,
+        "w": 78,
+        "h": 78
+      }
+    },
+    "cops_relic_police": {
+      "joy": {
+        "right": null,
+        "left": 4.4,
+        "bottom": 2.2,
+        "w": 120,
+        "h": 120
+      },
+      "phase": {
+        "right": 4.4,
+        "left": null,
+        "bottom": 3.5,
+        "w": 78,
+        "h": 78
+      }
+    },
+    "cops_mimic_player": {
+      "joy": {
+        "w": 120,
+        "h": 120,
+        "bottom": 2.6147024972098216,
+        "left": 5.172157287597656,
+        "right": null
+      },
+      "stab": {
+        "w": 78,
+        "h": 78,
+        "bottom": 15.065749352719603,
+        "right": 0.7716079552968342,
+        "left": null
+      },
+      "defend": {
+        "w": 78,
+        "h": 78,
+        "bottom": 3.9390745617094494,
+        "right": 2.2726277510325117,
+        "left": null
+      },
+      "sit": {
+        "w": 52,
+        "h": 52,
+        "bottom": 3.413862874861859,
+        "right": 22.774413228034973,
+        "left": null
+      },
+      "wave": {
+        "w": 52,
+        "h": 52,
+        "bottom": 3.413862874861859,
+        "right": 38.77616226673126,
+        "left": null
+      }
+    },
+    "cops_mimic_spec": {
+      "joy": {
+        "right": null,
+        "left": 4.4,
+        "bottom": 2.2,
+        "w": 120,
+        "h": 120
+      }
+    }
+  }
+}

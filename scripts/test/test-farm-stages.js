@@ -5,7 +5,7 @@ const fs = require("fs");
 const path = require("path");
 const vm = require("vm");
 
-const stagesCode = fs.readFileSync(path.join(__dirname, "../js/games/ff1-stages.js"), "utf8");
+const stagesCode = fs.readFileSync(path.join(__dirname, "../../js/games/farm-stages.js"), "utf8");
 const sandbox = { window: {} };
 vm.runInNewContext(stagesCode, sandbox);
 const S = sandbox.window.FF1_STAGES;

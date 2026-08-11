@@ -8,7 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/minihub.css">
   <script src="config.js"></script>
 </head>
 <body>
@@ -29,10 +30,11 @@
     </nav>
   </header>
 
-  <!-- Ad slot: top -->
+  <!-- 광고 비활성화
   <aside class="ad-rail ad-rail--top" id="ad-top" aria-label="광고 영역">
     <div class="ad-slot" data-ad-slot="bannerTop"></div>
   </aside>
+  -->
 
   <main id="app">
     <!-- LOBBY -->
@@ -40,10 +42,28 @@
       <div class="hero">
         <p class="hero-kicker">WEB GAME ARCADE</p>
         <h1 class="hero-title">게임창고</h1>
-        <p class="hero-desc">유명한 캐주얼부터 타임매니지먼트까지. 골라서 바로 즐기세요.</p>
+        <p class="hero-desc">공개방에 모여 P2P로 바로 플레이 · 솔로 게임도 골라 즐기세요.</p>
       </div>
 
+      <section class="lobby-gate" id="lobby-gate" aria-label="멀티플레이 로비">
+        <label class="lobby-gate__id">
+          <span>참가 아이디</span>
+          <input type="text" id="lobby-player-id" maxlength="12" placeholder="닉네임" autocomplete="nickname">
+        </label>
+        <div class="lobby-gate__actions">
+          <button type="button" class="btn btn--primary" id="btn-room-create">방 만들기</button>
+          <button type="button" class="btn btn--ghost" id="btn-room-join">방 참가</button>
+          <button type="button" class="btn btn--ghost" id="btn-room-rank">랭킹</button>
+        </div>
+      </section>
+
       <div class="game-grid" id="game-grid"></div>
+
+      <section class="rank-panel" id="rank-panel" aria-label="명예의 전당">
+        <h2>명예의 전당</h2>
+        <div class="rk-tabs" id="rank-tabs"></div>
+        <div id="rank-table-wrap"></div>
+      </section>
     </section>
 
     <!-- GAME -->
@@ -123,12 +143,11 @@
     </section>
   </main>
 
-  <!-- Ad slot: bottom -->
+  <!-- 광고 비활성화
   <aside class="ad-rail ad-rail--bottom" id="ad-bottom" aria-label="광고 영역">
     <div class="ad-slot" data-ad-slot="bannerBottom"></div>
   </aside>
 
-  <!-- Interstitial ad overlay -->
   <div class="ad-modal" id="ad-modal" hidden>
     <div class="ad-modal__card">
       <p class="ad-modal__label">광고 · <span id="ad-countdown">5</span>초 후 닫기</p>
@@ -136,6 +155,7 @@
       <button type="button" class="btn btn--primary" id="ad-close" disabled>계속하기</button>
     </div>
   </div>
+  -->
 
   <footer class="site-footer">
     <span>© 게임창고 · 광고로 운영되는 무료 웹 아케이드</span>
@@ -144,15 +164,22 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <script src="js/analytics.js"></script>
-  <script src="js/ads.js"></script>
+  <script src="js/core/analytics.js"></script>
+  <script src="js/core/ads.js"></script>
+  <script src="js/core/ranking.js"></script>
+  <script src="js/multiplayer/peer-bus.js"></script>
+  <script src="js/multiplayer/public-rooms.js"></script>
+  <script src="js/multiplayer/engine.js"></script>
+  <script src="js/multiplayer/audio.js"></script>
   <script src="js/games/tetris.js"></script>
   <script src="js/games/snake.js"></script>
   <script src="js/games/breakout.js"></script>
-  <script src="js/games/puzzle2048.js"></script>
-  <script src="js/games/ff1-stages.js"></script>
+  <script src="js/games/puzzle-2048.js"></script>
+  <script src="js/games/farm-stages.js"></script>
   <script src="js/games/farm.js"></script>
   <script src="js/games/kart.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/games/minihub-client.js"></script>
+  <script src="js/games/minihub.js"></script>
+  <script src="js/core/app.js"></script>
 </body>
 </html>

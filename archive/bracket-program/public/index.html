@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#4f46e5" />
+  <title>대진표 프로그램</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="minigames.css" />
+</head>
+<body>
+  <div id="toast" class="toast"></div>
+
+  <!-- 상단 바 (모드 진입 후 표시) -->
+  <header id="topbar" class="topbar hidden">
+    <button id="homeBtn" class="icon-btn" title="처음으로">←</button>
+    <div class="topbar-title">
+      <span id="roleBadge" class="role-badge"></span>
+      <span id="topbarSub" class="topbar-sub"></span>
+    </div>
+    <div class="conn" id="connDot" title="실시간 연결"></div>
+  </header>
+
+  <!-- 탭 -->
+  <nav id="tabs" class="tabs hidden"></nav>
+
+  <main id="app"></main>
+
+  <!-- 처음 화면 우하단 관리자 버튼 -->
+  <button id="floatAdmin" class="float-admin hidden" title="관리자">⚙</button>
+
+  <!-- 모달 -->
+  <div id="modalWrap" class="modal-wrap hidden">
+    <div class="modal" id="modal"></div>
+  </div>
+
+  <!-- 미니게임 전체화면 -->
+  <div id="mgRoot" class="mg-root hidden"></div>
+
+  <script src="audio.js"></script>
+  <script src="app.js"></script>
+  <script src="minigames.js"></script>
+</body>
+</html>

@@ -89,6 +89,7 @@
   }
 
   function fillSlots(root) {
+    /* 광고 비활성화 — 다시 켤 때 아래 주석 해제
     ensureAdsenseScript();
     var nodes = (root || document).querySelectorAll("[data-ad-slot]");
     nodes.forEach(function (el) {
@@ -96,11 +97,15 @@
       if (useAdsense()) renderAdsense(el, name);
       else renderDemo(el);
     });
+    */
   }
 
   var interstitialTimer = null;
 
   function showInterstitial(onDone) {
+    /* 광고 비활성화 — 전면광고 스킵. 다시 켤 때 아래 블록 주석 해제하고 이 early return 제거 */
+    if (onDone) onDone();
+    /*
     var modal = document.getElementById("ad-modal");
     var closeBtn = document.getElementById("ad-close");
     var countdownEl = document.getElementById("ad-countdown");
@@ -138,6 +143,7 @@
     }
 
     closeBtn.addEventListener("click", finish);
+    */
   }
 
   global.GWAds = {

@@ -152,9 +152,9 @@ const windowObj = {
 };
 
 const code =
-  fs.readFileSync(path.join(__dirname, "../js/games/ff1-stages.js"), "utf8") +
+  fs.readFileSync(path.join(__dirname, "../../js/games/farm-stages.js"), "utf8") +
   "\n" +
-  fs.readFileSync(path.join(__dirname, "../js/games/farm.js"), "utf8");
+  fs.readFileSync(path.join(__dirname, "../../js/games/farm.js"), "utf8");
 vm.runInNewContext(code, {
   window: windowObj,
   document,

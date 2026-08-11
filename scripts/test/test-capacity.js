@@ -3,7 +3,7 @@
  */
 const fs = require("fs");
 const path = require("path");
-const src = fs.readFileSync(path.join(__dirname, "../js/games/farm.js"), "utf8");
+const src = fs.readFileSync(path.join(__dirname, "../../js/games/farm.js"), "utf8");
 
 if (!src.includes("space: 3, carPack: 1")) throw new Error("bear packing missing");
 if (!src.includes("cost: 10000, sell: 5000")) throw new Error("cow price not FF1");

@@ -8,7 +8,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const ROOT = path.join(__dirname, "..");
+const ROOT = path.join(__dirname, "..", "..");
 const OUT = path.join(ROOT, "test-results", "kart-8p");
 const PORT = 8765;
 
@@ -24,7 +24,7 @@ function contentType(file) {
 function startServer() {
   const server = http.createServer((req, res) => {
     let urlPath = decodeURIComponent((req.url || "/").split("?")[0]);
-    if (urlPath === "/") urlPath = "/kart-sim.html";
+    if (urlPath === "/") urlPath = "/tools/kart-sim.html";
     const file = path.join(ROOT, urlPath.replace(/^\//, ""));
     if (!file.startsWith(ROOT) || !fs.existsSync(file) || fs.statSync(file).isDirectory()) {
       res.writeHead(404);
@@ -77,7 +77,7 @@ async function main() {
   };
 
   try {
-    await page.goto(`http://127.0.0.1:${PORT}/kart-sim.html`, { waitUntil: "networkidle", timeout: 60000 });
+    await page.goto(`http://127.0.0.1:${PORT}/tools/kart-sim.html`, { waitUntil: "networkidle", timeout: 60000 });
     await waitFor(page, () => window.__SIM_READY__ === true, 30000, "sim ready");
     const bootErr = await page.evaluate(() => window.__SIM_ERROR__);
     if (bootErr) throw new Error(bootErr);
@@ -114,7 +114,7 @@ async function main() {
     await page.waitForTimeout(800);
     report.screenshots.push(await shot(page, "04-racing-live-ranks.png"));
 
-    /* mid race — ensure 8 rank rows + minimap + boost UI */
+    /* mid race ??ensure 8 rank rows + minimap + boost UI */
     const mid = await page.evaluate(() => {
       const s = window.__KART_HANDLE__.getUiState();
       const rankRows = document.querySelectorAll(".kart-rank__row").length;

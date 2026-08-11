@@ -2011,3 +2011,4 @@ window.FF1_STAGES = [
     ]
   }
 ];
+window.FARM_STAGES = window.FF1_STAGES;
