@@ -702,6 +702,19 @@
       setupRenderer();
       buildTrack();
       bindInput();
+      /* 카메라·메시를 즉시 정렬해 캐릭터 탑승이 첫 프레임부터 보이게 */
+      Object.keys(race.karts).forEach(function (id) {
+        syncKartMesh(race.karts[id], race.karts[id].input || input, 0.016);
+      });
+      var myKart = race.karts[me.id];
+      if (myKart && race.camera) {
+        race.camera.position.set(
+          myKart.x - Math.cos(myKart.yaw) * 8.2,
+          4.0,
+          myKart.z - Math.sin(myKart.yaw) * 8.2
+        );
+        race.camera.lookAt(myKart.x, 0.9, myKart.z);
+      }
       lastTs = 0;
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(loop);
