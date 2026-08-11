@@ -1745,6 +1745,32 @@
       };
     }
 
+    function getRaceProgress() {
+      if (!race) return null;
+      var ranks = rankingList();
+      var leader = ranks[0];
+      var my = race.karts[me.id] || leader;
+      if (!leader) return null;
+      var totalNeed = Math.max(1, leader.laps * race.meta.total);
+      function pctOf(k) {
+        if (!k) return 0;
+        if (k.finished) return 100;
+        var d = (k.lap - 1) * race.meta.total + k.progress;
+        return Math.max(0, Math.min(100, (d / totalNeed) * 100));
+      }
+      return {
+        phase: race.phase,
+        mapId: race.map.id,
+        leaderPct: pctOf(leader),
+        mePct: pctOf(my),
+        leaderName: leader.name,
+        meKmh: Math.round(my.displayKmh || my.speed * 9.2),
+        lap: my.lap,
+        laps: my.laps,
+        finishedCount: ranks.filter(function (k) { return k.finished; }).length
+      };
+    }
+
     function startEightPlayerSim(opts) {
       opts = opts || {};
       room.isHost = true;
@@ -1810,6 +1836,7 @@
       startEightPlayerSim: startEightPlayerSim,
       getMetrics: getMetrics,
       getUiState: getUiState,
+      getRaceProgress: getRaceProgress,
       renderLobby: renderLobby,
       root: root
     };
