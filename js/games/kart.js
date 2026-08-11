@@ -12,6 +12,8 @@
   var FINISH_WINDOW = 10;
   var TICK_HZ = 20;
   var PHASE_HZ = 10;
+  var TRACK_SCALE = 12.5; /* 기존 대비 ~10배 주행거리 */
+  var WORLD_SCALE = 10;
   var COLORS = ["#ff4d6d", "#4dabf7", "#69db7c", "#ffd43b", "#da77f2", "#ff922b", "#22b8cf", "#f783ac"];
 
   /* 귀여운 오리지널 라이더 (선택 → 카트에 탑승) */
@@ -36,7 +38,7 @@
       name: "빌리지 손가락",
       theme: {
         ground: 0x5cb85c, road: 0x5a6270, sky: 0x7ec8f0, curb: 0xff5a5a,
-        accent: 0xffc857, rail: 0xffffff, fogFar: 200, style: "village"
+        accent: 0xffc857, rail: 0xffffff, fogFar: 1800, style: "village"
       },
       laps: 2,
       pts: ptsVillage()
@@ -46,7 +48,7 @@
       name: "포레스트 목걸이",
       theme: {
         ground: 0x2d6a4f, road: 0x4a3728, sky: 0x8fd6a8, curb: 0xffd166,
-        accent: 0x95d5b2, rail: 0xd8f3dc, fogFar: 190, style: "forest"
+        accent: 0x95d5b2, rail: 0xd8f3dc, fogFar: 1700, style: "forest"
       },
       laps: 2,
       pts: ptsForest()
@@ -56,7 +58,7 @@
       name: "마인 지그재그",
       theme: {
         ground: 0x6c757d, road: 0x343a40, sky: 0xb8a9c9, curb: 0xff6b6b,
-        accent: 0xffd60a, rail: 0xadb5bd, fogFar: 180, style: "mine"
+        accent: 0xffd60a, rail: 0xadb5bd, fogFar: 1600, style: "mine"
       },
       laps: 3,
       pts: ptsMine()
@@ -86,7 +88,7 @@
       t = i / 14;
       a.push({ x: 104 - t * 42, z: -Math.sin(t * Math.PI) * 16 - Math.sin(t * 3) * 2 });
     }
-    return scalePts(a, 1.25);
+    return scalePts(a, TRACK_SCALE);
   }
 
   function ptsForest() {
@@ -100,7 +102,7 @@
         z: Math.sin(t) * (52 + Math.cos(t * 2) * 10 + Math.cos(t * 4) * 2)
       });
     }
-    return scalePts(a, 1.25);
+    return scalePts(a, TRACK_SCALE);
   }
 
   function ptsMine() {
@@ -122,7 +124,7 @@
         });
       }
     }
-    return scalePts(a, 1.3);
+    return scalePts(a, TRACK_SCALE * (1.3 / 1.25));
   }
 
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
@@ -381,16 +383,17 @@
       var mapOpts = MAPS.map(function (m) {
         return '<option value="' + m.id + '"' + (room.mapId === m.id ? " selected" : "") + ">" + m.name + "</option>";
       }).join("");
-      var list = room.players.map(function (p) {
+      var listReady = room.players.filter(function (p) { return p.ready; });
+      var listWait = room.players.filter(function (p) { return !p.ready; });
+      var chip = function (p) {
         var ch = getChar(p.charId);
-        return '<li class="kart-plist__item" style="--c:' + p.color + '">' +
-          '<span class="kart-char-mini">' + ch.emoji + "</span>" +
-          "<b>" + esc(p.name) + "</b> <small>" + ch.name + "</small>" +
-          (p.id === room.hostId ? " <em>방장</em>" : "") +
-          (room.mode === "team" ? " <small>팀" + p.team + "</small>" : "") +
-          (p.ready ? ' <span class="kart-ready">READY</span>' : ' <span class="kart-wait">…</span>') +
-          "</li>";
-      }).join("");
+        return '<span class="kart-wr-chip" style="border-color:' + p.color + '">' +
+          '<b style="color:' + p.color + '">●</b> ' + ch.emoji + " " + esc(p.name) +
+          (p.id === room.hostId ? " 👑" : "") +
+          (p.id === me.id ? " (나)" : "") +
+          (room.mode === "team" ? " ·팀" + p.team : "") +
+          "</span>";
+      };
       var allReady = room.players.length > 0 && room.players.every(function (p) { return p.ready; });
       els.room.innerHTML =
         '<div class="kart-card kart-card--wide">' +
@@ -403,16 +406,25 @@
             ">개인전</option><option value=\"team\"" + (room.mode === "team" ? " selected" : "") + ">팀전</option></select></label>" +
             "</div>"
           : "<p>맵: <b>" + mapName(room.mapId) + "</b></p>") +
-        '<ul class="kart-plist">' + list + "</ul>" +
+        '<div class="kart-wait-room">' +
+        '<div class="kart-wr-head">🎮 대기방 — 전원 준비 후 방장이 <b>Go</b>를 누르면 시작합니다</div>' +
+        '<div class="kart-wr-cols">' +
+        '<div class="kart-wr-col ready"><div class="kart-wr-col-t">✅ 준비 완료 (' + listReady.length + ")</div>" +
+        '<div class="kart-wr-list">' + (listReady.map(chip).join("") || '<span class="kart-wr-empty">아직 없음</span>') + "</div></div>" +
+        '<div class="kart-wr-col wait"><div class="kart-wr-col-t">⏳ 대기 중 (' + listWait.length + ")</div>" +
+        '<div class="kart-wr-list">' + (listWait.map(chip).join("") || '<span class="kart-wr-empty">모두 준비됨!</span>') + "</div></div>" +
+        "</div></div>" +
         (room.mode === "team"
           ? '<div class="kart-team-pick"><button type="button" data-team="A" class="btn btn--ghost">팀 A</button>' +
             '<button type="button" data-team="B" class="btn btn--ghost">팀 B</button></div>'
           : "") +
         '<div class="kart-actions">' +
         '<button type="button" class="btn btn--ghost" id="kart-ctl-edit">조작 배치</button>' +
-        '<button type="button" class="btn btn--ghost" id="kart-ready">' + (me.ready ? "레디 취소" : "레디") + "</button>" +
+        '<button type="button" class="btn ' + (me.ready ? "btn--ghost" : "btn--primary") + '" id="kart-ready">' +
+        (me.ready ? "준비 취소" : "✋ 준비 완료") + "</button>" +
         (room.isHost
-          ? '<button type="button" class="btn btn--primary" id="kart-go"' + (!allReady ? " disabled" : "") + ">GO!</button>"
+          ? '<button type="button" class="btn btn--primary" id="kart-go"' + (!allReady ? " disabled" : "") +
+            ">🚀 Go! (" + listReady.length + "/" + room.players.length + " 준비)</button>"
           : "<p class=\"kart-note\">방장이 GO를 누를 때까지 대기</p>") +
         '<button type="button" class="btn btn--ghost" id="kart-leave">나가기</button>' +
         "</div></div>";
@@ -952,20 +964,22 @@
         alpha: false,
         powerPreference: "high-performance",
         stencil: false,
-        depth: true
+        depth: true,
+        logarithmicDepthBuffer: true
       });
       renderer.setPixelRatio(dpr);
       renderer.setSize(w, h, false);
       renderer.setClearColor(race.map.theme.sky, 1);
       var scene = new THREE.Scene();
-      scene.fog = new THREE.Fog(race.map.theme.sky, 70, race.map.theme.fogFar || 200);
-      var camera = new THREE.PerspectiveCamera(58, w / h, 0.4, 420);
+      var fogFar = race.map.theme.fogFar || 1800;
+      scene.fog = new THREE.Fog(race.map.theme.sky, fogFar * 0.28, fogFar);
+      var camera = new THREE.PerspectiveCamera(58, w / h, 0.8, fogFar * 2.4);
       scene.add(new THREE.HemisphereLight(0xffffff, 0x6b7c6b, 1.05));
       var dir = new THREE.DirectionalLight(0xfff4e0, 0.95);
-      dir.position.set(45, 70, 30);
+      dir.position.set(45 * WORLD_SCALE * 0.4, 70 * WORLD_SCALE * 0.35, 30 * WORLD_SCALE * 0.4);
       scene.add(dir);
       var fill = new THREE.DirectionalLight(0xa0c4ff, 0.28);
-      fill.position.set(-30, 20, -40);
+      fill.position.set(-30 * WORLD_SCALE * 0.35, 20 * WORLD_SCALE * 0.3, -40 * WORLD_SCALE * 0.35);
       scene.add(fill);
       race.renderer = renderer;
       race.scene = scene;
@@ -1029,23 +1043,26 @@
       return canvasTex(function (g) {
         g.fillStyle = "#" + ("000000" + theme.ground.toString(16)).slice(-6);
         g.fillRect(0, 0, 128, 128);
+        /* 결정론적 패턴 — Math.random 제거로 텍스처 재생성 시 깜빡임 방지 */
         for (var i = 0; i < 90; i++) {
-          g.fillStyle = "rgba(255,255,255," + (0.03 + Math.random() * 0.07) + ")";
+          var px = ((i * 47) % 128);
+          var py = ((i * 91) % 128);
+          g.fillStyle = "rgba(255,255,255," + (0.03 + (i % 5) * 0.012) + ")";
           g.beginPath();
-          g.arc(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 2.2, 0, Math.PI * 2);
+          g.arc(px, py, 1 + (i % 3), 0, Math.PI * 2);
           g.fill();
         }
         if (theme.style === "village") {
           g.fillStyle = "rgba(120,200,80,0.28)";
-          for (var j = 0; j < 50; j++) g.fillRect(Math.random() * 128, Math.random() * 128, 3, 6);
+          for (var j = 0; j < 50; j++) g.fillRect((j * 23) % 128, (j * 41) % 128, 3, 6);
         } else if (theme.style === "forest") {
           g.fillStyle = "rgba(20,60,30,0.35)";
-          for (var k = 0; k < 40; k++) g.fillRect(Math.random() * 128, Math.random() * 128, 4, 4);
+          for (var k = 0; k < 40; k++) g.fillRect((k * 29) % 128, (k * 53) % 128, 4, 4);
         } else {
           g.fillStyle = "rgba(40,40,50,0.3)";
-          for (var m = 0; m < 35; m++) g.fillRect(Math.random() * 128, Math.random() * 128, 5, 2);
+          for (var m = 0; m < 35; m++) g.fillRect((m * 31) % 128, (m * 17) % 128, 5, 2);
         }
-      }, 24, 24, "ground-" + theme.ground);
+      }, 80, 80, "ground-" + theme.ground);
     }
 
     function makeRibbonGeo(curve, halfW, y, segs, closed) {
@@ -1082,7 +1099,7 @@
     function buildTrack() {
       var pts = race.map.pts;
       var theme = race.map.theme;
-      var segs = isMobile ? Math.max(80, pts.length * 3) : Math.max(140, pts.length * 5);
+      var segs = isMobile ? Math.max(160, pts.length * 10) : Math.max(280, pts.length * 16);
       var halfW = race.meta.halfW;
 
       var skyMat = canvasTex(function (g, c) {
@@ -1104,15 +1121,21 @@
       }, 1, 1, "skygrad-" + theme.sky);
       skyMat.side = THREE.BackSide;
       skyMat.fog = false;
-      var sky = new THREE.Mesh(geo("sky", function () { return new THREE.SphereGeometry(320, 28, 18); }), skyMat);
+      var sky = new THREE.Mesh(geo("sky", function () { return new THREE.SphereGeometry(320 * WORLD_SCALE, 28, 18); }), skyMat);
       race.scene.add(sky);
 
+      var groundMat = groundTexture(theme);
+      groundMat.polygonOffset = true;
+      groundMat.polygonOffsetFactor = 2;
+      groundMat.polygonOffsetUnits = 2;
+      groundMat.depthWrite = true;
       var ground = new THREE.Mesh(
-        geo("ground", function () { return new THREE.CircleGeometry(300, 64); }),
-        groundTexture(theme)
+        geo("ground", function () { return new THREE.CircleGeometry(300 * WORLD_SCALE, 72); }),
+        groundMat
       );
       ground.rotation.x = -Math.PI / 2;
-      ground.position.y = -0.2;
+      ground.position.y = -3.2;
+      ground.renderOrder = -2;
       race.scene.add(ground);
 
       var shape = [];
@@ -1121,8 +1144,8 @@
       var curve = new THREE.CatmullRomCurve3(shape, true, "catmullrom", 0.08);
       race._curve = curve;
 
-      /* flat asphalt — raised slightly so kart never sinks into ground */
-      var roadY = 0.02;
+      /* flat asphalt — raised clearly above ground to avoid z-fighting flicker */
+      var roadY = 0.12;
       var roadGeo = makeRibbonGeo(curve, halfW, roadY, segs, true);
       sharedGeo.road = roadGeo;
       var roadMat = canvasTex(function (g) {
@@ -1137,9 +1160,11 @@
         for (var y = 0; y < 128; y += 12) g.fillRect(0, y, 128, 3);
       }, 1, 1, "roadflat-" + theme.road);
       roadMat.polygonOffset = true;
-      roadMat.polygonOffsetFactor = -1;
-      roadMat.polygonOffsetUnits = -1;
-      race.scene.add(new THREE.Mesh(roadGeo, roadMat));
+      roadMat.polygonOffsetFactor = -2;
+      roadMat.polygonOffsetUnits = -2;
+      var roadMesh = new THREE.Mesh(roadGeo, roadMat);
+      roadMesh.renderOrder = 0;
+      race.scene.add(roadMesh);
 
       /* low candy curbs only — no tall corridor walls that hide the chase cam */
       var curbMat = canvasTex(function (g) {
@@ -1190,8 +1215,9 @@
         geo("start", function () { return new THREE.BoxGeometry(halfW * 2.1, 0.08, 1.7); }),
         checkMat
       );
-      start.position.set(s0.x, 0.1, s0.z);
+      start.position.set(s0.x, roadY + 0.14, s0.z);
       start.rotation.y = -ang;
+      start.renderOrder = 1;
       race.scene.add(start);
 
       var archMat = mat("arch-" + theme.accent, function () {
@@ -1361,16 +1387,16 @@
       /* distant hills — keep far from track so chase cam stays open */
       var hillN = isMobile ? 6 : 10;
       for (var h = 0; h < hillN; h++) {
-        var ang = (h / hillN) * Math.PI * 2;
-        var hx = Math.cos(ang) * 210;
-        var hz = Math.sin(ang) * 210;
+        var angH = (h / hillN) * Math.PI * 2;
+        var hx = Math.cos(angH) * 210 * WORLD_SCALE;
+        var hz = Math.sin(angH) * 210 * WORLD_SCALE;
         var hill = new THREE.Mesh(
-          geo("hill", function () { return new THREE.SphereGeometry(22, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.5); }),
+          geo("hill", function () { return new THREE.SphereGeometry(22 * WORLD_SCALE * 0.35, 10, 8, 0, Math.PI * 2, 0, Math.PI * 0.5); }),
           mat("hill-" + theme.ground, function () {
             return new THREE.MeshLambertMaterial({ color: theme.ground });
           })
         );
-        hill.position.set(hx, -6, hz);
+        hill.position.set(hx, -40, hz);
         hill.scale.set(1.2 + (h % 3) * 0.35, 0.35 + (h % 2) * 0.15, 1.2 + (h % 4) * 0.25);
         race.scene.add(hill);
       }

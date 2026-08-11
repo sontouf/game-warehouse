@@ -1072,11 +1072,15 @@
     if (gameType === "roulette") return { options: ["1등", "2등", "3등", "꽝"], spinning: false, lastResult: null };
     if (gameType === "ladder") return { names: [], prizes: [], rungs: [], cols: 0, rows: 0, ready: false };
     if (gameType === "draw") return { labels: [], shuffled: [], total: 0, drawn: {} };
-    if (gameType === "arena") return {
-      mode: "team", teamCount: 2, started: false, world: { w: 1760, h: 1180 },
-      bullets: [], items: [], effects: [], walls: [], pushables: [], nexus: [],
-      timeLeft: 0, winner: null,
-    };
+    if (gameType === "arena") {
+      const g = {
+        mode: "team", teamCount: 2, started: false, world: { w: 1760, h: 1180 },
+        bullets: [], items: [], effects: [], walls: [], pushables: [], props: [], nexus: [],
+        wallsCustom: false, timeLeft: 0, winner: null,
+      };
+      buildMap(g);
+      return g;
+    }
     if (gameType === "cops") return {
       mode: "relic", started: false, world: { w: 1800, h: 1200 },
       policeCount: 1, botCount: 10, safeCount: 4, teamMode: "team", teamsCount: 2, relicTime: 5,
@@ -1183,6 +1187,18 @@
         startCountdown(room, startArena);
       } else if (msg.a === "setmode" && isHost) {
         g.teamCount = clamp(Math.round(Number(msg.teamCount) || 2), 2, 3);
+        pushState(room);
+      } else if (msg.a === "mapedit" && isHost && !g.started) {
+        if (Array.isArray(msg.walls)) {
+          g.walls = msg.walls.slice(0, 400).map((w) => ({
+            x: Math.round(+w.x), y: Math.round(+w.y), w: Math.round(+w.w), h: Math.round(+w.h)
+          }));
+          g.wallsCustom = true;
+        }
+        pushState(room);
+      } else if (msg.a === "mapreset" && isHost && !g.started) {
+        g.wallsCustom = false;
+        buildMap(g);
         pushState(room);
       } else if (msg.a === "ready") {
         player.ready = !!msg.ready; pushState(room);
@@ -1329,40 +1345,27 @@
   function buildMap(g) {
     const W = g.world.w, H = g.world.h, cx = W / 2, cy = H / 2;
     const walls = [];
-    const props = []; /* 장식·엄폐 (충돌은 walls/pushables) */
     const add = (x, y, w, h) => walls.push({ x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h) });
-    const prop = (x, y, w, h, k) => props.push({ x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h), k: k || "crate" });
-    /* 중앙 요새 */
+    /* 고정 벽만 유지 (깜빡이던 상자·프롭 제거) */
     add(cx - 160, cy - 160, 110, 22); add(cx + 50, cy - 160, 110, 22);
     add(cx - 160, cy + 138, 110, 22); add(cx + 50, cy + 138, 110, 22);
     add(cx - 160, cy - 160, 22, 110); add(cx - 160, cy + 50, 22, 110);
     add(cx + 138, cy - 160, 22, 110); add(cx + 138, cy + 50, 22, 110);
-    /* 측면 복도·초크포인트 */
     add(W * 0.22, 100, 24, 280); add(W * 0.22, H - 380, 24, 280);
     add(W * 0.78 - 24, 100, 24, 280); add(W * 0.78 - 24, H - 380, 24, 280);
     add(110, H * 0.28, 280, 24); add(W - 390, H * 0.28, 280, 24);
     add(110, H * 0.72 - 24, 280, 24); add(W - 390, H * 0.72 - 24, 280, 24);
-    /* 대각 엄폐 클러스터 */
     const covers = [
       [W * 0.18, H * 0.18], [W * 0.82, H * 0.18], [W * 0.18, H * 0.82], [W * 0.82, H * 0.82],
       [W * 0.5, H * 0.22], [W * 0.5, H * 0.78], [W * 0.28, H * 0.5], [W * 0.72, H * 0.5],
       [W * 0.38, H * 0.35], [W * 0.62, H * 0.35], [W * 0.38, H * 0.65], [W * 0.62, H * 0.65],
     ];
-    for (const bp of covers) {
-      add(bp[0] - 50, bp[1] - 16, 100, 32);
-      prop(bp[0] - 18, bp[1] - 40, 36, 20, "barrel");
-    }
-    /* 미드 레인 장벽 */
+    for (const bp of covers) add(bp[0] - 50, bp[1] - 16, 100, 32);
     add(cx - 40, cy - 260, 80, 18); add(cx - 40, cy + 242, 80, 18);
     add(cx - 260, cy - 40, 18, 80); add(cx + 242, cy - 40, 18, 80);
-    const pushables = [
-      { x: cx - 300, y: cy - 24, w: 48, h: 48 }, { x: cx + 252, y: cy - 24, w: 48, h: 48 },
-      { x: cx - 24, y: cy - 300, w: 48, h: 48 }, { x: cx - 24, y: cy + 252, w: 48, h: 48 },
-      { x: W * 0.34, y: H * 0.48, w: 44, h: 44 }, { x: W * 0.66 - 44, y: H * 0.48, w: 44, h: 44 },
-      { x: W * 0.42, y: H * 0.30, w: 40, h: 40 }, { x: W * 0.58 - 40, y: H * 0.70, w: 40, h: 40 },
-    ];
-    for (const b of pushables) prop(b.x + 4, b.y - 14, 28, 12, "mark");
-    g.walls = walls; g.pushables = pushables; g.props = props;
+    if (!g.wallsCustom) g.walls = walls;
+    g.pushables = [];
+    g.props = [];
     const tc = g.teamCount;
     if (tc === 2) g.bases = [{ x: 130, y: cy }, { x: W - 130, y: cy }];
     else g.bases = [{ x: 150, y: H - 150 }, { x: W - 150, y: H - 150 }, { x: cx, y: 140 }];
@@ -1472,16 +1475,7 @@
     const pr = ARENA.pr;
     const nx = axis === "x" ? p.x + delta : p.x;
     const ny = axis === "y" ? p.y + delta : p.y;
-    for (const w of g.walls) if (hitRect(nx, ny, pr, w)) return;
-    for (const box of g.pushables) {
-      if (hitRect(nx, ny, pr, box)) {
-        const moved = axis === "x" ? Object.assign({}, box, { x: box.x + delta }) : Object.assign({}, box, { y: box.y + delta });
-        if (moved.x < 0 || moved.y < 0 || moved.x + box.w > g.world.w || moved.y + box.h > g.world.h) return;
-        for (const w of g.walls) if (rectOverlap(moved, w)) return;
-        for (const b2 of g.pushables) if (b2 !== box && rectOverlap(moved, b2)) return;
-        box.x = moved.x; box.y = moved.y;
-      }
-    }
+    for (const w of g.walls || []) if (hitRect(nx, ny, pr, w)) return;
     if (axis === "x") p.x = nx; else p.y = ny;
   }
   function applyItem(p, type, now) {
@@ -1625,8 +1619,7 @@
     for (const b of g.bullets) {
       b.x += b.vx * dt; b.y += b.vy * dt; b.ttl -= dt;
       if (b.x < 0 || b.x > W || b.y < 0 || b.y > H) { b.ttl = 0; continue; }
-      let blocked = false; for (const w of g.walls) if (hitRect(b.x, b.y, ARENA.br, w)) { blocked = true; break; }
-      if (!blocked) for (const bx of g.pushables) if (hitRect(b.x, b.y, ARENA.br, bx)) { blocked = true; break; }
+      let blocked = false; for (const w of g.walls || []) if (hitRect(b.x, b.y, ARENA.br, w)) { blocked = true; break; }
       if (blocked) {
         pushArenaFx(g, b.x, b.y, "spark", 12, 0.18);
         b.ttl = 0; continue;
@@ -1691,10 +1684,6 @@
         hit: (now - (n.lastHitAt || 0) < 1200) ? 1 : 0,
       })),
     };
-    if (full) {
-      payload.px = g.pushables.map((b) => ({ x: Math.round(b.x), y: Math.round(b.y), w: b.w, h: b.h }));
-      payload.pr = (g.props || []).map((b) => ({ x: b.x, y: b.y, w: b.w, h: b.h, k: b.k }));
-    }
     /* 이펙트는 매 틱 전송 (히트감 누락 방지) */
     payload.fx = g.effects.map((e) => ({ x: e.x, y: e.y, r: e.r, k: e.k || "spark" }));
     broadcast(room, payload);
@@ -2609,23 +2598,23 @@
           p.dashUntil = now + dashTime * 1000;
           p.dashCdUntil = now + dashCd * 1000;
         }
-        /* 중거리 밀치기 */
+        /* 중거리 밀치기 — 캐릭터가 바라보는 방향으로 밀침 */
         if (inp.push && now >= (p.pushCdUntil || 0)) {
           p.pushCdUntil = now + COPS.pushCd * 1000;
           p.pushFlashUntil = now + 180;
-          let hit = 0;
+          const fx = Math.cos(p.face || 0);
+          const fy = Math.sin(p.face || 0);
           for (const pol of police) {
             const ddx = pol.x - p.x, ddy = pol.y - p.y;
             const d = Math.hypot(ddx, ddy);
             if (d > COPS.pushR || d < 1e-3) continue;
-            hit++;
             if (now < (pol.shieldUntil || 0)) {
-              /* 술래 방어막: 도둑이 끌려감 */
-              applyKnockVel(p, ddx, ddy, COPS.pullForce);
+              /* 술래 방어막: 도둑이 시선 반대쪽으로 튕김 */
+              applyKnockVel(p, -fx, -fy, COPS.pullForce);
               p.pushCdUntil = now + COPS.pushCd * 1000;
               broadcast(room, { t: "cops-shot", x: Math.round(p.x), y: Math.round(p.y), hit: false, kind: "reflect" });
             } else {
-              applyKnockVel(pol, ddx, ddy, COPS.pushForce);
+              applyKnockVel(pol, fx, fy, COPS.pushForce);
               broadcast(room, { t: "cops-shot", x: Math.round(pol.x), y: Math.round(pol.y), hit: false, kind: "push" });
             }
           }

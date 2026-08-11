@@ -418,6 +418,8 @@ window.MGFactory = (function () {
       </div>
       <div class="wr-actions">
         <button class="btn gray block" data-mg="ctl-edit">🎛 조작 배치 미리보기 · 조정</button>
+        ${me.isHost && room.gameType === "arena" ? `<button class="btn gray block" data-mg="a-wall-edit">${mapEditMode ? "✅ 벽 배치 완료" : "🧱 벽 배치 (드래그=추가 · 우클릭=삭제)"}</button>
+        <button class="btn gray block" data-mg="a-wall-reset">벽 기본값 복원</button>` : ""}
         <p class="muted center" style="font-size:12px;margin:6px 0 0">미리보기에서 ← 대기실로 누르면 이 화면으로 돌아옵니다</p>
         <button class="btn ${iAmReady ? "gray" : ""} block" data-mg="toggle-ready">${iAmReady ? "준비 취소" : "✋ 준비 완료"}</button>
         ${me.isHost ? `<button class="btn go block" data-mg="go-start">🚀 Go! 게임 시작 (${ready.length}/${ps.length} 준비)</button>` : ""}
@@ -1583,6 +1585,7 @@ window.MGFactory = (function () {
     // 컨트롤(스킬 버튼)
     if (arenaCtlMode !== "team") { buildArenaControls(); arenaCtlMode = "team"; }
     // 대기방 (시작 전)
+    if (g.started) mapEditMode = false;
     const wait = root.querySelector("#aWait");
     if (wait) wait.innerHTML = g.started ? "" : waitRoomHtml();
     // 팀 선택 UI
@@ -3101,22 +3104,25 @@ window.MGFactory = (function () {
     const W = cv.width, H = cv.height;
     const g = room.game;
     const worldW = (g.world && g.world.w) || W, worldH = (g.world && g.world.h) || H;
-    const viewW = W * ARENA_ZOOM, viewH = H * ARENA_ZOOM;
+    const editPreview = mapEditMode && !g.started;
+    const zoom = editPreview ? Math.max(worldW / W, worldH / H) * 1.02 : ARENA_ZOOM;
+    const viewW = W * zoom, viewH = H * zoom;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.fillStyle = "#070b16"; ctx.fillRect(0, 0, W, H);
-    // 카메라: 내 캐릭터 중심 추적 (맵 전체가 아닌 주변만 표시)
+    // 카메라: 대기·벽편집은 맵 전체, 인게임은 내 캐릭터 추적
     const meP = lastArena && lastArena.ps && lastArena.ps.find((p) => p.id === me.id);
-    const focusX = meP ? meP.x : worldW / 2, focusY = meP ? meP.y : worldH / 2;
-    const targetCamX = Math.max(0, Math.min(worldW - viewW, focusX - viewW / 2));
-    const targetCamY = Math.max(0, Math.min(worldH - viewH, focusY - viewH / 2));
-    if (arenaCamSnap || !lastArena) {
+    const focusX = editPreview || !meP ? worldW / 2 : meP.x;
+    const focusY = editPreview || !meP ? worldH / 2 : meP.y;
+    const targetCamX = Math.max(0, Math.min(Math.max(0, worldW - viewW), focusX - viewW / 2));
+    const targetCamY = Math.max(0, Math.min(Math.max(0, worldH - viewH), focusY - viewH / 2));
+    if (editPreview || arenaCamSnap || !lastArena) {
       arenaCam.x = targetCamX; arenaCam.y = targetCamY; arenaCamSnap = false;
     } else {
       arenaCam.x += (targetCamX - arenaCam.x) * 0.14;
       arenaCam.y += (targetCamY - arenaCam.y) * 0.14;
     }
     ctx.save();
-    ctx.scale(1 / ARENA_ZOOM, 1 / ARENA_ZOOM);
+    ctx.scale(1 / zoom, 1 / zoom);
     ctx.translate(-arenaCam.x, -arenaCam.y);
     // 월드 바닥 + 그리드 + 외곽
     ctx.fillStyle = "#0f172a"; ctx.fillRect(0, 0, worldW, worldH);
@@ -3126,10 +3132,27 @@ window.MGFactory = (function () {
     ctx.strokeStyle = "#334155"; ctx.lineWidth = 6; ctx.strokeRect(3, 3, worldW - 6, worldH - 6);
     // 벽
     if (g.walls) { ctx.fillStyle = "#334155"; ctx.strokeStyle = "#475569"; ctx.lineWidth = 2; for (const w of g.walls) { ctx.fillRect(w.x, w.y, w.w, w.h); ctx.strokeRect(w.x, w.y, w.w, w.h); } }
-    if (!lastArena) {
+    if (editPreview && mapEditDrag) {
+      const d = mapEditDrag;
+      const x = Math.min(d.x0, d.x1), y = Math.min(d.y0, d.y1);
+      let w = Math.abs(d.x1 - d.x0), h = Math.abs(d.y1 - d.y0);
+      if (w < 12 && h < 12) { w = 80; h = 16; }
+      else if (w >= h) h = 16; else { h = 80; w = 16; }
+      ctx.fillStyle = "rgba(253,224,71,0.55)";
+      ctx.strokeStyle = "#fde047";
+      ctx.lineWidth = 2;
+      ctx.fillRect(x, y, w, h);
+      ctx.strokeRect(x, y, w, h);
+    }
+    if (!lastArena || !g.started) {
       ctx.restore();
-      ctx.fillStyle = "#64748b"; ctx.font = "22px sans-serif"; ctx.textAlign = "center";
-      ctx.fillText("방장이 시작을 누르면 게임이 시작됩니다", W / 2, H / 2);
+      ctx.fillStyle = mapEditMode ? "#fde047" : "#64748b";
+      ctx.font = mapEditMode ? "bold 18px sans-serif" : "22px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        mapEditMode ? "🧱 벽 편집: 드래그=추가 · 우클릭=삭제" : "방장이 시작을 누르면 게임이 시작됩니다",
+        W / 2, H - 36
+      );
       return;
     }
     const tl = root.querySelector("#ahudTime"); if (tl) tl.textContent = "⏱ " + lastArena.tl + "s";
@@ -3140,20 +3163,6 @@ window.MGFactory = (function () {
   }
   function drawArenaTeam(ctx) {
     const a = lastArena;
-    const viewW = (root.querySelector("#acanvas")?.width || 1440) * ARENA_ZOOM;
-    const viewH = (root.querySelector("#acanvas")?.height || 900) * ARENA_ZOOM;
-    const g = room.game;
-    const worldW = (g.world && g.world.w) || 1760, worldH = (g.world && g.world.h) || 1180;
-    // 장식·엄폐 프롭
-    if (a.pr) {
-      for (const b of a.pr) {
-        if (b.k === "barrel") { ctx.fillStyle = "#64748b"; ctx.fillRect(b.x, b.y, b.w, b.h); ctx.strokeStyle = "#94a3b8"; ctx.lineWidth = 1; ctx.strokeRect(b.x, b.y, b.w, b.h); }
-        else if (b.k === "mark") { ctx.fillStyle = "rgba(148,163,184,0.35)"; ctx.fillRect(b.x, b.y, b.w, b.h); }
-        else { ctx.fillStyle = "#475569"; ctx.fillRect(b.x, b.y, b.w, b.h); }
-      }
-    }
-    // 미는 상자
-    if (a.px) { ctx.fillStyle = "#7c5e3b"; ctx.strokeStyle = "#b08a53"; ctx.lineWidth = 2; for (const b of a.px) { ctx.fillRect(b.x, b.y, b.w, b.h); ctx.strokeRect(b.x, b.y, b.w, b.h); } }
     // 아이템
     const IC = { heal: ["#22c55e", "＋"], speed: ["#38bdf8", "»"], damage: ["#f97316", "⚔"], revive: ["#e879f9", "✚"] };
     for (const it of a.it || []) {
@@ -3409,6 +3418,20 @@ window.MGFactory = (function () {
     if (a === "a-stop") { send({ t: "action", a: "stop" }); leaveGameView(); return; }
     if (a === "a-team") { send({ t: "action", a: "team", team: +t.dataset.team }); return; }
     if (a === "a-iteminfo") { const el = root.querySelector("#aInfo"); if (el) el.classList.toggle("hidden"); return; }
+    if (a === "a-wall-edit") {
+      if (!me.isHost || !room || room.gameType !== "arena" || room.game.started) return;
+      mapEditMode = !mapEditMode;
+      MA.sfx("nav");
+      updateArena();
+      return;
+    }
+    if (a === "a-wall-reset") {
+      if (!me.isHost || !room || room.gameType !== "arena" || room.game.started) return;
+      mapEditMode = false;
+      send({ t: "action", a: "mapreset" });
+      MA.sfx("nav");
+      return;
+    }
     // 경찰과 도둑
     if (a === "c-stop") { send({ t: "action", a: "stop" }); leaveGameView(); return; }
     if (a === "k-stop") { send({ t: "action", a: "stop" }); leaveGameView(); return; }
@@ -3471,18 +3494,36 @@ window.MGFactory = (function () {
     const r = cv.getBoundingClientRect();
     const cx = (clientX - r.left) * (W / r.width);
     const cy = (clientY - r.top) * (H / r.height);
+    if (cv.id === "acanvas") {
+      const editPreview = mapEditMode && pg && !pg.started;
+      const zoom = editPreview ? Math.max(wW / W, wH / H) * 1.02 : ARENA_ZOOM;
+      return { x: cx * zoom + arenaCam.x, y: cy * zoom + arenaCam.y };
+    }
     const camX = W / 2 - wW / 2, camY = H / 2 - wH / 2;
     return { x: cx - camX, y: cy - camY };
   }
   function pushMapEdit(walls) {
     send({ t: "action", a: "mapedit", walls });
   }
+  function canEditArenaWalls() {
+    return mapEditMode && room && room.gameType === "arena" && !room.game.started && me.isHost;
+  }
+  function canEditRelicWalls() {
+    return mapEditMode && room && room.gameType === "cops" && room.game.mode === "relic" && !room.game.started && me.isHost;
+  }
+  function redrawMapEditTarget() {
+    if (room && room.gameType === "arena") drawArena();
+    else if (room && room.gameType === "cops") drawCops();
+  }
   if (!root._mapEditBound) {
     root._mapEditBound = true;
     root.addEventListener("mousedown", (e) => {
-      if (!mapEditMode || !room || room.game.started || room.game.mode !== "relic" || !me.isHost) return;
-      const cv = e.target.closest && e.target.id === "ccanvas" ? e.target : null;
+      if (!canEditArenaWalls() && !canEditRelicWalls()) return;
+      const id = e.target && e.target.id;
+      const cv = (id === "acanvas" || id === "ccanvas") ? e.target : null;
       if (!cv) return;
+      if (id === "acanvas" && !canEditArenaWalls()) return;
+      if (id === "ccanvas" && !canEditRelicWalls()) return;
       if (e.button === 2) return;
       const p = mapCanvasToWorld(cv, e.clientX, e.clientY);
       mapEditDrag = { x0: p.x, y0: p.y, x1: p.x, y1: p.y };
@@ -3490,10 +3531,10 @@ window.MGFactory = (function () {
     });
     root.addEventListener("mousemove", (e) => {
       if (!mapEditDrag) return;
-      const cv = root.querySelector("#ccanvas"); if (!cv) return;
+      const cv = root.querySelector(canEditArenaWalls() ? "#acanvas" : "#ccanvas"); if (!cv) return;
       const p = mapCanvasToWorld(cv, e.clientX, e.clientY);
       mapEditDrag.x1 = p.x; mapEditDrag.y1 = p.y;
-      drawCops();
+      redrawMapEditTarget();
     });
     root.addEventListener("mouseup", (e) => {
       if (!mapEditDrag || !room) return;
@@ -3504,16 +3545,18 @@ window.MGFactory = (function () {
       else if (w >= h) h = 16; else { h = 80; w = 16; }
       const walls = [...(room.game.walls || []), { x: Math.round(x), y: Math.round(y), w: Math.round(w), h: Math.round(h) }];
       pushMapEdit(walls);
-      drawCops();
+      redrawMapEditTarget();
     });
     root.addEventListener("contextmenu", (e) => {
-      if (!mapEditMode || !room || room.game.started || !me.isHost) return;
-      const cv = e.target.id === "ccanvas" ? e.target : null;
+      if (!canEditArenaWalls() && !canEditRelicWalls()) return;
+      const id = e.target && e.target.id;
+      const cv = (id === "acanvas" || id === "ccanvas") ? e.target : null;
       if (!cv) return;
       e.preventDefault();
       const p = mapCanvasToWorld(cv, e.clientX, e.clientY);
       const walls = (room.game.walls || []).filter((w) => !(p.x >= w.x && p.x <= w.x + w.w && p.y >= w.y && p.y <= w.y + w.h));
       pushMapEdit(walls);
+      redrawMapEditTarget();
     });
   }
 
