@@ -267,6 +267,63 @@ main {
   color: var(--muted);
 }
 
+.lobby-home {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin: 8px 0 28px;
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.lobby-home__card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 22px 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(145deg, rgba(45, 226, 197, 0.1), transparent 50%),
+    rgba(18, 26, 43, 0.78);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.lobby-home__card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(45, 226, 197, 0.45);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+.lobby-home__emoji { font-size: 1.8rem; line-height: 1; }
+.lobby-home__card strong {
+  font-family: var(--display);
+  font-size: 1.45rem;
+  letter-spacing: -0.02em;
+}
+.lobby-home__card small { color: var(--muted); font-size: 0.86rem; }
+.lobby-panel { max-width: 920px; margin: 0 auto 24px; }
+.lobby-panel__title {
+  margin: 0 0 14px;
+  font-family: var(--display);
+  font-size: 1.6rem;
+}
+.lobby-back {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 0 10px;
+}
+.lobby-back:hover { color: var(--ink); }
+@media (max-width: 720px) {
+  .lobby-home { grid-template-columns: 1fr; }
+}
+
 .lobby-gate {
   display: flex;
   flex-wrap: wrap;
@@ -1263,6 +1320,19 @@ main {
 
 .view--game .game-stage { min-height: 560px; align-items: stretch; }
 .view--game .game-stage:has(.ff) { place-items: stretch; }
+.view--game .game-stage:has(.minihub-stage) {
+  height: min(78vh, 920px);
+  min-height: 480px;
+  overflow: hidden;
+  place-items: stretch;
+  align-items: stretch;
+}
+.minihub-stage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+}
 
 .puzzle-board {
   display: grid;
@@ -1774,13 +1844,19 @@ main {
   .game-stage { min-height: 360px; }
 }
 
-/* 게임창고 임베드: 전체화면 fixed 해제 */
+/* 게임창고 임베드: 전체화면 fixed 해제 · 대기/설정은 세로 스크롤 */
 .minihub-stage .mg-root {
   position: absolute !important;
   inset: 0 !important;
   z-index: 2 !important;
   border-radius: 16px;
-  overflow: hidden;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+.minihub-stage .mg-root.mg-gameplay {
+  overflow: hidden !important;
 }
 .minihub-stage .mg-root.hidden { display: none; }
 

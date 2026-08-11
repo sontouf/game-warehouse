@@ -8,11 +8,16 @@
 
   function $(id) { return document.getElementById(id); }
 
-  function gameList() {
+  var SOLO_IDS = ["tetris", "farm", "snake", "breakout", "puzzle2048"];
+  var MULTI_IDS = ["kart", "arena", "cops"];
+
+  function gamesByIds(ids) {
     var g = window.GWGames || {};
-    return ["tetris", "farm", "kart", "arena", "cops", "snake", "breakout", "puzzle2048"]
-      .map(function (id) { return g[id]; })
-      .filter(Boolean);
+    return ids.map(function (id) { return g[id]; }).filter(Boolean);
+  }
+
+  function gameList() {
+    return gamesByIds(SOLO_IDS.concat(MULTI_IDS));
   }
 
   var MP_GAMES = [
@@ -20,6 +25,8 @@
     { id: "arena", title: "아레나", emoji: "🕹️" },
     { id: "cops", title: "경찰과 도둑", emoji: "🕵️" }
   ];
+
+  var lobbyPanel = "home";
 
   var rankTab = "overall";
   var RANK_TABS = [
@@ -62,7 +69,12 @@
   function init() {
     els.siteName = $("site-name");
     els.siteTagline = $("site-tagline");
-    els.gameGrid = $("game-grid");
+    els.gameGridSolo = $("game-grid-solo");
+    els.gameGridMulti = $("game-grid-multi");
+    els.lobbyHome = $("lobby-home");
+    els.lobbySolo = $("lobby-solo");
+    els.lobbyMulti = $("lobby-multi");
+    els.rankPanel = $("rank-panel");
     els.viewLobby = $("view-lobby");
     els.viewGame = $("view-game");
     els.viewAdmin = $("view-admin");
@@ -89,9 +101,11 @@
 
     renderLobby();
     renderRankPanel();
+    showLobbyPanel("home");
     bindNav();
     bindAdmin();
     bindLobbyGate();
+    bindLobbyHome();
 
     if (window.GWPublicRooms) GWPublicRooms.start();
 
@@ -114,9 +128,10 @@
     showView(hash === "admin" ? "admin" : hash.indexOf("game-") === 0 ? hash : "lobby");
   }
 
-  function renderLobby() {
-    els.gameGrid.innerHTML = "";
-    gameList().forEach(function (game, i) {
+  function fillGameGrid(container, games, onPick) {
+    if (!container) return;
+    container.innerHTML = "";
+    games.forEach(function (game, i) {
       var btn = document.createElement("button");
       btn.type = "button";
       btn.className = "game-card";
@@ -129,9 +144,55 @@
         '<div class="game-card__meta">' +
         (game.tags || []).map(function (t) { return '<span class="pill">' + t + "</span>"; }).join("") +
         "</div>";
-      btn.addEventListener("click", function () { launchGame(game.id); });
-      els.gameGrid.appendChild(btn);
+      btn.addEventListener("click", function () { onPick(game.id); });
+      container.appendChild(btn);
     });
+  }
+
+  function renderLobby() {
+    fillGameGrid(els.gameGridSolo, gamesByIds(SOLO_IDS), function (id) {
+      launchGame(id);
+    });
+    fillGameGrid(els.gameGridMulti, gamesByIds(MULTI_IDS), function (id) {
+      launchMultiGame(id);
+    });
+  }
+
+  function showLobbyPanel(name) {
+    lobbyPanel = name || "home";
+    var panels = {
+      home: els.lobbyHome,
+      solo: els.lobbySolo,
+      multi: els.lobbyMulti,
+      rank: els.rankPanel
+    };
+    Object.keys(panels).forEach(function (key) {
+      var el = panels[key];
+      if (!el) return;
+      el.hidden = key !== lobbyPanel;
+    });
+    if (lobbyPanel === "rank") renderRankPanel();
+  }
+
+  function bindLobbyHome() {
+    document.querySelectorAll("[data-lobby]").forEach(function (el) {
+      el.addEventListener("click", function () {
+        showLobbyPanel(el.getAttribute("data-lobby") || "home");
+      });
+    });
+  }
+
+  function launchMultiGame(id) {
+    var name = readPlayerId();
+    if (!name) return;
+    window.GWRoomIntent = {
+      action: "create",
+      game: id,
+      name: name,
+      roomName: name + "의 방",
+      isPublic: true
+    };
+    launchGame(id);
   }
 
   function bindNav() {
@@ -175,6 +236,7 @@
       refreshAdminUi();
     } else if (target === "lobby") {
       location.hash = "lobby";
+      showLobbyPanel(lobbyPanel === "home" ? "home" : lobbyPanel);
     }
 
     /* 광고 비활성화
@@ -399,10 +461,6 @@
       };
     };
 
-    $("btn-room-rank").onclick = function () {
-      var panel = $("rank-panel");
-      if (panel) panel.scrollIntoView({ behavior: "smooth", block: "start" });
-    };
   }
 
   function bindAdmin() {

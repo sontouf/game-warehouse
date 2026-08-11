@@ -379,7 +379,7 @@
     desc: "팀 슈팅 · 넥서스 파괴전 · 공개방 P2P",
     tags: ["멀티", "P2P", "공개방"],
     accent: "#f43f5e",
-    hint: "로비에서 방 만들기/참가 · V 없이 터치 조작",
+    hint: "터치한 방향으로 사격 · 로비에서 방 만들기/참가",
     create: function (stage, api, intent) {
       return createForGame("arena", stage, api, intent);
     }
@@ -392,7 +392,7 @@
     desc: "유물부수기 · AI처럼 행동하기 · 공개방 P2P",
     tags: ["멀티", "P2P", "공개방"],
     accent: "#38bdf8",
-    hint: "로비에서 방 만들기/참가 · 역할 플레이",
+    hint: "로비에서 방 만들기/참가 · 멀티 메뉴에서 바로 입장",
     create: function (stage, api, intent) {
       return createForGame("cops", stage, api, intent);
     }

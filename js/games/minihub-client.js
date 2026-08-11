@@ -55,7 +55,7 @@ window.MGFactory = (function () {
   let copsMimicKillFeed = [], mimicCam = { x: null, y: null };
   let copsShots = [], copsSlashes = [], combatFx = [];
   let interactHeld = false, stopHeld = false, shootHeldC = false;
-  let sitHeld = false, waveHeld = false, defendHeld = false, stabPending = false;
+  let defendHeld = false, stabPending = false;
   let copsMode = "relic", seenEventIds = 0, copsCatchFeed = [];
   let phasePending = false, copsDashPending = false, copsPushPending = false, copsShieldHeld = false, inGameView = false;
   let relicMaps = [], mapEditMode = false, mapEditDrag = null;
@@ -279,7 +279,12 @@ window.MGFactory = (function () {
         localStorage.setItem("mg_name", account.name);
         localStorage.setItem("mg_pw", account.pw);
         rankings = m.rankings || null;
-        hubView = "menu"; renderHub();
+        if (arcadeMode) {
+          /* 로비에서 방만들기/참가·게임카드로 진입 — 허브(방만들기/참가/랭킹)는 띄우지 않음 */
+          if (!room) renderRoomPending();
+        } else {
+          hubView = "menu"; renderHub();
+        }
         if (m.created) T("새 계정을 만들었습니다: " + m.name, "ok");
       } else {
         loggedIn = false; account.pw = ""; localStorage.removeItem("mg_pw");
@@ -413,6 +418,7 @@ window.MGFactory = (function () {
       </div>
       <div class="wr-actions">
         <button class="btn gray block" data-mg="ctl-edit">🎛 조작 배치 미리보기 · 조정</button>
+        <p class="muted center" style="font-size:12px;margin:6px 0 0">미리보기에서 ← 대기실로 누르면 이 화면으로 돌아옵니다</p>
         <button class="btn ${iAmReady ? "gray" : ""} block" data-mg="toggle-ready">${iAmReady ? "준비 취소" : "✋ 준비 완료"}</button>
         ${me.isHost ? `<button class="btn go block" data-mg="go-start">🚀 Go! 게임 시작 (${ready.length}/${ps.length} 준비)</button>` : ""}
       </div>
@@ -421,8 +427,10 @@ window.MGFactory = (function () {
 
   // ----------------------------------------------------------------- 진입/종료
   function open() {
+    root._mgClosed = false;
     root.classList.remove("hidden");
-    document.body.style.overflow = "hidden";
+    /* 대기/설정은 내부 스크롤, 인게임만 페이지 스크롤 잠금 */
+    document.body.style.overflow = "";
     MA.resume();
     // 모바일: 게임 조작 영역에서 터치하면 화면이 스크롤/이동되지 않도록 방지
     if (!touchGuardAdded) {
@@ -484,6 +492,9 @@ window.MGFactory = (function () {
     exitFullscreen();
   }
   function close() {
+    if (root._mgClosed) return;
+    root._mgClosed = true;
+    const navLobby = arcadeMode && !document.getElementById("view-lobby")?.classList.contains("is-visible");
     leave();
     try { if (bridge && bridge.destroy) bridge.destroy(); } catch (e) {}
     try { ws && ws.close(); } catch (e) {}
@@ -494,6 +505,12 @@ window.MGFactory = (function () {
     exitFullscreen();
     root.classList.add("hidden");
     document.body.style.overflow = "";
+    if (navLobby) {
+      try {
+        const back = document.getElementById("btn-back");
+        if (back) setTimeout(() => back.click(), 0);
+      } catch (e) {}
+    }
   }
   function leave() {
     if (ws && room) send({ t: "leave" });
@@ -578,10 +595,23 @@ window.MGFactory = (function () {
     </div>
     <div class="mg-body"><div class="mg-card center"><div class="muted" style="padding:30px">로그인 중...</div></div></div>`;
   }
+  function renderRoomPending() {
+    root.innerHTML = `
+    <div class="mg-top">
+      <button class="mg-back" data-mg="close">← 로비</button>
+      <div class="mg-title">🎮 미니게임</div>
+      <div style="width:40px"></div>
+    </div>
+    <div class="mg-body"><div class="mg-card center"><div class="muted" style="padding:30px">방 준비 중…</div></div></div>`;
+  }
 
   function renderHub() {
     shellType = null; copsRole = null; lastCops = null;
     MA.bgm("lobby");
+    if (arcadeMode) {
+      renderRoomPending();
+      return;
+    }
     root.innerHTML = `
     <div class="mg-top">
       <button class="mg-back" data-mg="close">✕</button>
@@ -863,16 +893,13 @@ window.MGFactory = (function () {
   const DEFAULT_CONTROL_LAYOUTS = {
     arena: {
       joy: { left: 3, bottom: 3, w: 104, h: 104 },
-      dash: { right: 28, bottom: 6, w: 68, h: 68 },
-      shoot: { right: 3, bottom: 3, w: 92, h: 92 },
+      dash: { right: 3, bottom: 6, w: 72, h: 72 },
     },
     cops_mimic_player: {
       joy: { left: 3, bottom: 3, w: 100, h: 100 },
       stab: { right: 3, bottom: 3, w: 86, h: 86 },
       dash: { right: 26, bottom: 4, w: 64, h: 64 },
       defend: { right: 3, bottom: 22, w: 64, h: 64 },
-      sit: { right: 26, bottom: 22, w: 48, h: 48 },
-      wave: { right: 40, bottom: 22, w: 48, h: 48 },
     },
     cops_mimic_spec: {
       joy: { left: 3, bottom: 3, w: 100, h: 100 },
@@ -902,20 +929,27 @@ window.MGFactory = (function () {
   function resolveControlLayout(profile) {
     if (!profile) return null;
     const user = loadUserCtlLayouts()[profile];
-    if (user && Object.keys(user).length) return cloneLayout(user);
+    if (user && Object.keys(user).length) {
+      const cleaned = cloneLayout(user);
+      delete cleaned.sit; delete cleaned.wave; delete cleaned.shoot;
+      if (profile === "arena") delete cleaned.shoot;
+      return cleaned;
+    }
     const custom = controlLayouts[profile];
-    if (custom && Object.keys(custom).length) return cloneLayout(custom);
+    if (custom && Object.keys(custom).length) {
+      const cleaned = cloneLayout(custom);
+      delete cleaned.sit; delete cleaned.wave;
+      if (profile === "arena") delete cleaned.shoot;
+      return cleaned;
+    }
     return cloneLayout(DEFAULT_CONTROL_LAYOUTS[profile] || null);
   }
   const CTL_LS_KEY = "gw-ctl-layout-v1";
   const CTL_META = {
     joy: { ico: "🕹️", name: "이동", kind: "joy" },
-    shoot: { ico: "🔫", name: "발사", kind: "big" },
     dash: { ico: "⚡", name: "대쉬", kind: "btn" },
     stab: { ico: "🗡️", name: "찌르기", kind: "big" },
     defend: { ico: "🛡️", name: "방어", kind: "btn" },
-    sit: { ico: "🪑", name: "앉기", kind: "sm" },
-    wave: { ico: "👋", name: "손흔들기", kind: "sm" },
     interact: { ico: "🔓", name: "상호작용", kind: "big" },
     push: { ico: "💨", name: "밀치기", kind: "btn" },
     phase: { ico: "🌀", name: "돌진", kind: "big" },
@@ -956,7 +990,7 @@ window.MGFactory = (function () {
   }
   function ctlProfilesForRoom() {
     if (!room) return [{ id: "arena", label: "아레나" }];
-    if (room.gameType === "arena") return [{ id: "arena", label: "아레나 (조이스틱·발사·대쉬)" }];
+    if (room.gameType === "arena") return [{ id: "arena", label: "아레나 (조이스틱·대쉬 · 터치로 사격)" }];
     if (room.gameType === "kitchen" || room.gameType === "kitchen-tut") {
       return [
         { id: "kitchen", label: "주방" },
@@ -990,7 +1024,7 @@ window.MGFactory = (function () {
             <h3>조작 배치 미리보기</h3>
             <p class="ctl-editor__hint">버튼을 드래그해 위치를 바꾸고, 크기를 조절한 뒤 저장하세요. 이 기기에만 저장됩니다.</p>
           </div>
-          <button type="button" class="btn gray sm" data-ctl-ed="close">닫기</button>
+          <button type="button" class="btn gray sm" data-ctl-ed="close">← 대기실로</button>
         </div>
         <div class="ctl-editor__toolbar">
           <label class="ctl-editor__fld">레이아웃
@@ -1580,10 +1614,8 @@ window.MGFactory = (function () {
   function buildArenaControls() {
     const el = root.querySelector("#askills"); if (!el) return;
     el.innerHTML = `
-      <button class="skill dash" id="dashBtn" data-ctl="dash"><span class="sk-ico">⚡</span><span class="sk-lb" id="dashLb">대쉬</span></button>
-      <button class="skill shoot" id="shootBtn" data-ctl="shoot"><span class="sk-ico">🔫</span><span class="sk-lb" id="shootLb">발사</span></button>`;
-    repairing = false; recallPending = false;
-    bindHold(root.querySelector("#shootBtn"), (v) => (shooting = v));
+      <button class="skill dash" id="dashBtn" data-ctl="dash"><span class="sk-ico">⚡</span><span class="sk-lb" id="dashLb">대쉬</span></button>`;
+    repairing = false; recallPending = false; shooting = false;
     bindTap(root.querySelector("#dashBtn"), () => { dashPending = true; MA.sfx("dash"); });
     applyControlLayout("arena");
   }
@@ -1696,9 +1728,9 @@ window.MGFactory = (function () {
     if (!cv || cv._aimBound) return;
     cv._aimBound = true;
     const aimAt = (clientX, clientY) => {
-      if (!lastArena || !room?.game?.started) return;
+      if (!lastArena || !room?.game?.started) return false;
       const meP = lastArena.ps && lastArena.ps.find((p) => p.id === me.id);
-      if (!meP || !meP.al) return;
+      if (!meP || !meP.al) return false;
       const g = room.game;
       const worldW = (g.world && g.world.w) || cv.width, worldH = (g.world && g.world.h) || cv.height;
       const viewW = cv.width * ARENA_ZOOM, viewH = cv.height * ARENA_ZOOM;
@@ -1706,16 +1738,27 @@ window.MGFactory = (function () {
       const wx = arenaCam.x + pos.x * ARENA_ZOOM;
       const wy = arenaCam.y + pos.y * ARENA_ZOOM;
       facing = Math.atan2(wy - meP.y, wx - meP.x);
+      return true;
     };
-    cv.addEventListener("pointerdown", (e) => {
+    const onDown = (e) => {
       if (e.target !== cv) return;
       if (e.pointerType === "touch" && joy.active) return;
-      aimAt(e.clientX, e.clientY);
-    });
-    cv.addEventListener("pointermove", (e) => {
-      if (e.buttons === 0 && e.pointerType !== "touch") return;
+      if (aimAt(e.clientX, e.clientY)) shooting = true;
+    };
+    const onMove = (e) => {
+      if (!shooting && e.buttons === 0 && e.pointerType !== "touch") return;
       if (e.pointerType === "touch" && joy.active) return;
-      if (e.buttons > 0 || e.pointerType === "pen") aimAt(e.clientX, e.clientY);
+      if (shooting || e.buttons > 0 || e.pointerType === "pen" || e.pointerType === "touch") {
+        aimAt(e.clientX, e.clientY);
+      }
+    };
+    const onUp = () => { shooting = false; };
+    cv.addEventListener("pointerdown", onDown);
+    cv.addEventListener("pointermove", onMove);
+    cv.addEventListener("pointerup", onUp);
+    cv.addEventListener("pointercancel", onUp);
+    cv.addEventListener("pointerleave", (e) => {
+      if (e.pointerType !== "touch") shooting = false;
     });
   }
   function initArenaControls() {
@@ -2511,7 +2554,7 @@ window.MGFactory = (function () {
 
   function buildCopsControls(role, spectating) {
     const el = root.querySelector("#copsCtl"); if (!el) return;
-    interactHeld = stopHeld = shootHeldC = sitHeld = waveHeld = defendHeld = copsShieldHeld = false; stabPending = false;
+    interactHeld = stopHeld = shootHeldC = defendHeld = copsShieldHeld = false; stabPending = false;
     const mode = lastCops?.mode || room?.game?.mode || "relic";
     if (role === "thief") {
       el.innerHTML = `
@@ -2540,15 +2583,11 @@ window.MGFactory = (function () {
         <div class="joystick" id="cjoyBase" data-ctl="joy"><div class="joystick-knob" id="cjoyKnob"></div></div>
         <button class="cbtn stab" id="cStab" data-ctl="stab"><span class="sk-ico">🗡️</span><span id="cStabLb">찌르기</span></button>
         <button class="cbtn dash" id="cDash" data-ctl="dash"><span class="sk-ico">⚡</span><span id="cDashLb">대쉬</span></button>
-        <button class="cbtn defend" id="cDefend" data-ctl="defend"><span class="sk-ico">🛡️</span><span id="cDefendLb">방어</span></button>
-        <button class="cbtn sm sit" id="cSit" data-ctl="sit">🪑</button>
-        <button class="cbtn sm wave" id="cWave" data-ctl="wave">👋</button>`;
+        <button class="cbtn defend" id="cDefend" data-ctl="defend"><span class="sk-ico">🛡️</span><span id="cDefendLb">방어</span></button>`;
       bindJoystick(root.querySelector("#cjoyBase"), root.querySelector("#cjoyKnob"));
       bindTap(root.querySelector("#cStab"), () => { stabPending = true; });
       bindTap(root.querySelector("#cDash"), () => { copsDashPending = true; MA.sfx("dash"); });
       bindHold(root.querySelector("#cDefend"), (v) => (defendHeld = v));
-      bindHold(root.querySelector("#cSit"), (v) => (sitHeld = v));
-      bindHold(root.querySelector("#cWave"), (v) => (waveHeld = v));
       }
     } else {
       el.innerHTML = "";
@@ -2574,11 +2613,11 @@ window.MGFactory = (function () {
       if (!copsRole) return;
       if (copsRole === "thief") {
         if (copsMode === "relic") send({ t: "action", a: "input", mvx: joy.dx, mvy: joy.dy, interact: interactHeld, dash: copsDashPending, push: copsPushPending });
-        else send({ t: "action", a: "input", mvx: joy.dx, mvy: joy.dy, interact: interactHeld, stop: stopHeld, sit: sitHeld, wave: waveHeld });
+        else send({ t: "action", a: "input", mvx: joy.dx, mvy: joy.dy, interact: interactHeld, stop: stopHeld });
       }
       else if (copsRole === "player") {
         if (lastCops && lastCops.mode === "mimic" && lastCops.dead) panMimicCam();
-        else send({ t: "action", a: "input", mvx: joy.dx, mvy: joy.dy, stab: stabPending, defend: defendHeld, sit: sitHeld, wave: waveHeld, dash: copsDashPending });
+        else send({ t: "action", a: "input", mvx: joy.dx, mvy: joy.dy, stab: stabPending, defend: defendHeld, dash: copsDashPending });
         stabPending = false;
       }
       else if (copsRole === "police") send({ t: "action", a: "input", mvx: joy.dx, mvy: joy.dy, phase: phasePending, shield: copsShieldHeld, defend: copsShieldHeld });
@@ -3308,7 +3347,10 @@ window.MGFactory = (function () {
     }
     if (a === "rank-tab") { rankTab = t.dataset.tab || "overall"; renderHubInner(); return; }
     if (a === "rank-refresh") { requestRanking(); return; }
-    if (a === "leaveHub") { leave(); hubView = "menu"; renderHub(); return; }
+    if (a === "leaveHub") {
+      if (arcadeMode) { close(); return; }
+      leave(); hubView = "menu"; renderHub(); return;
+    }
     // 허브 네비게이션
     if (a === "hub-create-view") { hubView = "create"; renderHubInner(); return; }
     if (a === "hub-join-view") { hubView = "join"; renderHubInner(); return; }

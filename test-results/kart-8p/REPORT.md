@@ -1,13 +1,13 @@
 # Kart 8P Load Test Report
 
 - Pass: **true**
-- Started: 2026-08-11T05:16:27.914Z
-- Finished: 2026-08-11T05:16:42.438Z
+- Started: 2026-08-11T05:34:48.078Z
+- Finished: 2026-08-11T05:35:13.592Z
 
 ## Maps
-- **village**: avgFps=60, minFps=30, maxFrameMs=33, frames=204, karts=8, sceneChildren=42
-- **forest**: avgFps=60, minFps=60, maxFrameMs=17, frames=273, karts=8, sceneChildren=42
-- **mine**: avgFps=60, minFps=60, maxFrameMs=17, frames=271, karts=8, sceneChildren=42
+- **village**: avgFps=59, minFps=30, maxFrameMs=33, frames=839, karts=8, sceneChildren=879
+- **forest**: avgFps=60, minFps=30, maxFrameMs=33, frames=270, karts=8, sceneChildren=861
+- **mine**: avgFps=60, minFps=30, maxFrameMs=33, frames=280, karts=8, sceneChildren=1327
 
 ## Screenshots
 - 01-lobby.png

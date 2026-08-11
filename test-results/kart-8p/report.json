@@ -1,84 +1,301 @@
 {
-  "startedAt": "2026-08-11T05:16:27.914Z",
+  "startedAt": "2026-08-11T05:34:48.078Z",
   "maps": [
     {
       "mapId": "village",
       "metrics": {
-        "frames": 204,
-        "avgFps": 60,
+        "frames": 839,
+        "avgFps": 59,
         "minFps": 30,
         "maxFps": null,
         "maxFrameMs": 33,
-        "avgFrameMs": 16.7,
+        "avgFrameMs": 16.9,
         "samples": [
           {
             "t": 0.9,
             "fps": 60,
             "phase": "countdown",
-            "meshes": 42,
+            "meshes": 879,
             "karts": 8
           },
           {
             "t": 1.9,
             "fps": 60,
             "phase": "countdown",
-            "meshes": 42,
+            "meshes": 879,
             "karts": 8
           },
           {
             "t": 2.9,
             "fps": 60,
             "phase": "countdown",
-            "meshes": 42,
+            "meshes": 879,
             "karts": 8
           },
           {
             "t": 3.9,
             "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
+            "phase": "running",
+            "meshes": 879,
             "karts": 8
           },
           {
             "t": 4.9,
             "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
+            "phase": "running",
+            "meshes": 879,
             "karts": 8
           },
           {
             "t": 5.9,
             "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
+            "phase": "running",
+            "meshes": 879,
             "karts": 8
           },
           {
             "t": 6.9,
             "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
+            "phase": "running",
+            "meshes": 879,
             "karts": 8
           },
           {
             "t": 7.9,
             "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
+            "phase": "running",
+            "meshes": 879,
             "karts": 8
           },
           {
             "t": 8.9,
             "fps": 60,
-            "phase": "done",
-            "meshes": 42,
+            "phase": "running",
+            "meshes": 879,
             "karts": 8
           },
           {
             "t": 9.9,
             "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 10.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 11.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 12.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 13.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 14.9,
+            "fps": 30,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 15.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 16.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 17.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 18.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 19.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 20.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 21.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 22.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 23.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 24.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 25.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 26.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 27.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 28.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 29.9,
+            "fps": 60,
+            "phase": "running",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 30.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 31.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 32.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 33.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 34.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 35.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 36.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 37.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 38.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 39.9,
+            "fps": 60,
             "phase": "done",
-            "meshes": 42,
+            "meshes": 879,
+            "karts": 8
+          },
+          {
+            "t": 40.9,
+            "fps": 60,
+            "phase": "done",
+            "meshes": 879,
             "karts": 8
           }
         ],
@@ -89,60 +306,67 @@
             "id": "BOT4",
             "name": "Bot4",
             "team": "A",
-            "time": 3.349999999999996,
+            "time": 29.95000000000029,
             "place": 1
-          },
-          {
-            "id": "BOT5",
-            "name": "Bot5",
-            "team": "B",
-            "time": 3.399999999999996,
-            "place": 2
-          },
-          {
-            "id": "BOT6",
-            "name": "Bot6",
-            "team": "A",
-            "time": 3.4499999999999957,
-            "place": 3
-          },
-          {
-            "id": "BOT3",
-            "name": "Bot3",
-            "team": "B",
-            "time": 3.649999999999995,
-            "place": 4
-          },
-          {
-            "id": "BOT7",
-            "name": "Bot7",
-            "team": "B",
-            "time": 3.699999999999995,
-            "place": 5
-          },
-          {
-            "id": "DZBFMD",
-            "name": "Player1",
-            "team": "A",
-            "time": 6.8999999999999835,
-            "place": 6
           },
           {
             "id": "BOT1",
             "name": "Bot1",
             "team": "B",
-            "time": 7.049999999999983,
-            "place": 7
+            "time": null,
+            "place": 2,
+            "dnf": true
+          },
+          {
+            "id": "BOT6",
+            "name": "Bot6",
+            "team": "A",
+            "time": null,
+            "place": 3,
+            "dnf": true
+          },
+          {
+            "id": "47JI6F",
+            "name": "Player1",
+            "team": "A",
+            "time": null,
+            "place": 4,
+            "dnf": true
+          },
+          {
+            "id": "BOT5",
+            "name": "Bot5",
+            "team": "B",
+            "time": null,
+            "place": 5,
+            "dnf": true
+          },
+          {
+            "id": "BOT3",
+            "name": "Bot3",
+            "team": "B",
+            "time": null,
+            "place": 6,
+            "dnf": true
           },
           {
             "id": "BOT2",
             "name": "Bot2",
             "team": "A",
-            "time": 8.14999999999998,
-            "place": 8
+            "time": null,
+            "place": 7,
+            "dnf": true
+          },
+          {
+            "id": "BOT7",
+            "name": "Bot7",
+            "team": "B",
+            "time": null,
+            "place": 8,
+            "dnf": true
           }
         ],
-        "sceneChildren": 42,
+        "sceneChildren": 879,
         "mapId": "village",
         "mode": "solo"
       },
@@ -151,102 +375,102 @@
     {
       "mapId": "forest",
       "metrics": {
-        "frames": 273,
+        "frames": 270,
         "avgFps": 60,
-        "minFps": 60,
+        "minFps": 30,
         "maxFps": null,
-        "maxFrameMs": 17,
-        "avgFrameMs": 16.6,
+        "maxFrameMs": 33,
+        "avgFrameMs": 16.7,
         "samples": [
           {
             "t": 0.9,
             "fps": 60,
             "phase": "countdown",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 1.9,
             "fps": 60,
             "phase": "countdown",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 2.9,
             "fps": 60,
             "phase": "countdown",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 3.9,
             "fps": 60,
             "phase": "finishing",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 4.9,
             "fps": 60,
             "phase": "finishing",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 5.9,
             "fps": 60,
             "phase": "finishing",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 6.9,
             "fps": 60,
             "phase": "finishing",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 7.9,
             "fps": 60,
             "phase": "finishing",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 8.9,
             "fps": 60,
             "phase": "finishing",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 9.9,
             "fps": 60,
             "phase": "finishing",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 10.9,
             "fps": 60,
             "phase": "finishing",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 11.9,
             "fps": 60,
             "phase": "finishing",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           },
           {
             "t": 12.9,
             "fps": 60,
             "phase": "finishing",
-            "meshes": 42,
+            "meshes": 861,
             "karts": 8
           }
         ],
@@ -254,25 +478,27 @@
         "playerCount": 8,
         "results": [
           {
-            "id": "BOT6",
-            "name": "Bot6",
-            "team": "A",
-            "time": 3.349999999999996,
-            "place": 1
-          },
-          {
             "id": "BOT7",
             "name": "Bot7",
             "team": "B",
             "time": 3.4999999999999956,
-            "place": 2
+            "place": 1
           },
           {
-            "id": "BOT2",
-            "name": "Bot2",
+            "id": "BOT6",
+            "name": "Bot6",
             "team": "A",
-            "time": 4.699999999999991,
-            "place": 3
+            "time": null,
+            "place": 2,
+            "dnf": true
+          },
+          {
+            "id": "BOT1",
+            "name": "Bot1",
+            "team": "B",
+            "time": null,
+            "place": 3,
+            "dnf": true
           },
           {
             "id": "BOT5",
@@ -291,178 +517,7 @@
             "dnf": true
           },
           {
-            "id": "BOT1",
-            "name": "Bot1",
-            "team": "B",
-            "time": null,
-            "place": 6,
-            "dnf": true
-          },
-          {
-            "id": "BOT3",
-            "name": "Bot3",
-            "team": "B",
-            "time": null,
-            "place": 7,
-            "dnf": true
-          },
-          {
-            "id": "DZBFMD",
-            "name": "Player1",
-            "team": "A",
-            "time": null,
-            "place": 8,
-            "dnf": true
-          }
-        ],
-        "sceneChildren": 42,
-        "mapId": "forest",
-        "mode": "team"
-      }
-    },
-    {
-      "mapId": "mine",
-      "metrics": {
-        "frames": 271,
-        "avgFps": 60,
-        "minFps": 60,
-        "maxFps": null,
-        "maxFrameMs": 17,
-        "avgFrameMs": 16.6,
-        "samples": [
-          {
-            "t": 0.9,
-            "fps": 60,
-            "phase": "countdown",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 1.9,
-            "fps": 60,
-            "phase": "countdown",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 2.9,
-            "fps": 60,
-            "phase": "countdown",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 3.9,
-            "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 4.9,
-            "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 5.9,
-            "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 6.9,
-            "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 7.9,
-            "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 8.9,
-            "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 9.9,
-            "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 10.9,
-            "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 11.9,
-            "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
-            "karts": 8
-          },
-          {
-            "t": 12.9,
-            "fps": 60,
-            "phase": "finishing",
-            "meshes": 42,
-            "karts": 8
-          }
-        ],
-        "phase": "done",
-        "playerCount": 8,
-        "results": [
-          {
-            "id": "BOT4",
-            "name": "Bot4",
-            "team": "A",
-            "time": 3.4499999999999957,
-            "place": 1
-          },
-          {
-            "id": "BOT5",
-            "name": "Bot5",
-            "team": "B",
-            "time": 3.649999999999995,
-            "place": 2
-          },
-          {
-            "id": "BOT6",
-            "name": "Bot6",
-            "team": "A",
-            "time": 3.7999999999999945,
-            "place": 3
-          },
-          {
-            "id": "BOT7",
-            "name": "Bot7",
-            "team": "B",
-            "time": 3.949999999999994,
-            "place": 4
-          },
-          {
-            "id": "BOT1",
-            "name": "Bot1",
-            "team": "B",
-            "time": null,
-            "place": 5,
-            "dnf": true
-          },
-          {
-            "id": "DZBFMD",
+            "id": "47JI6F",
             "name": "Player1",
             "team": "A",
             "time": null,
@@ -486,7 +541,185 @@
             "dnf": true
           }
         ],
-        "sceneChildren": 42,
+        "sceneChildren": 861,
+        "mapId": "forest",
+        "mode": "team"
+      }
+    },
+    {
+      "mapId": "mine",
+      "metrics": {
+        "frames": 280,
+        "avgFps": 60,
+        "minFps": 30,
+        "maxFps": null,
+        "maxFrameMs": 33,
+        "avgFrameMs": 16.7,
+        "samples": [
+          {
+            "t": 0.9,
+            "fps": 60,
+            "phase": "countdown",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 1.9,
+            "fps": 60,
+            "phase": "countdown",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 2.9,
+            "fps": 60,
+            "phase": "countdown",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 3.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 4.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 5.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 6.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 7.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 8.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 9.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 10.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 11.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 12.9,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 1327,
+            "karts": 8
+          },
+          {
+            "t": 13.9,
+            "fps": 60,
+            "phase": "done",
+            "meshes": 1327,
+            "karts": 8
+          }
+        ],
+        "phase": "done",
+        "playerCount": 8,
+        "results": [
+          {
+            "id": "BOT4",
+            "name": "Bot4",
+            "team": "A",
+            "time": 3.4999999999999956,
+            "place": 1
+          },
+          {
+            "id": "BOT5",
+            "name": "Bot5",
+            "team": "B",
+            "time": 3.7499999999999947,
+            "place": 2
+          },
+          {
+            "id": "BOT6",
+            "name": "Bot6",
+            "team": "A",
+            "time": 3.899999999999994,
+            "place": 3
+          },
+          {
+            "id": "BOT7",
+            "name": "Bot7",
+            "team": "B",
+            "time": 4.049999999999994,
+            "place": 4
+          },
+          {
+            "id": "BOT1",
+            "name": "Bot1",
+            "team": "B",
+            "time": null,
+            "place": 5,
+            "dnf": true
+          },
+          {
+            "id": "BOT3",
+            "name": "Bot3",
+            "team": "B",
+            "time": null,
+            "place": 6,
+            "dnf": true
+          },
+          {
+            "id": "47JI6F",
+            "name": "Player1",
+            "team": "A",
+            "time": null,
+            "place": 7,
+            "dnf": true
+          },
+          {
+            "id": "BOT2",
+            "name": "Bot2",
+            "team": "A",
+            "time": null,
+            "place": 8,
+            "dnf": true
+          }
+        ],
+        "sceneChildren": 1327,
         "mapId": "mine",
         "mode": "team"
       }
@@ -507,5 +740,5 @@
   "pass": true,
   "errors": [],
   "fpsFails": [],
-  "finishedAt": "2026-08-11T05:16:42.438Z"
+  "finishedAt": "2026-08-11T05:35:13.592Z"
 }

@@ -1265,8 +1265,6 @@
           mvy: clamp(Number(msg.mvy) || 0, -1, 1),
           interact: !!msg.interact,
           stop: !!msg.stop,
-          sit: !!msg.sit,
-          wave: !!msg.wave,
           shoot: !!msg.shoot,
           stab: !!msg.stab,
           defend: !!msg.defend,
@@ -1307,7 +1305,7 @@
 
   // ---------------------------------------------------------------- 아레나 (팀 슈팅)
   const ARENA = {
-    speed: 205, bulletSpeed: 620, bulletTTL: 1.15, cooldown: 0.22, dmg: 16, hp: 100, pr: 15, br: 4.5,
+    speed: 205, bulletSpeed: 620, bulletTTL: 30, cooldown: 0.22, dmg: 16, hp: 100, pr: 15, br: 4.5,
     dashSpeed: 660, dashTime: 0.16, dashCd: 3.2,
     respawn: 10, nexusHp: 700, nexusR: 32, itemMax: 10, itemEvery: 4.5, dt: 0.04,
     teamTime: 480,
@@ -1781,53 +1779,88 @@
   }
   function stepBotMimic(g, b, dt, now, players) {
     const R = COPS.r, W = g.world.w, H = g.world.h, walls = g.walls || [];
-    /* 적대 모드: 근처 플레이어 추격·공격 */
-    if (g.botsHostile && players) {
-      let best = null, bestD = 1e9;
+    const DETECT = 300;
+    const FLEE_DIST = 170;
+    const CHASE_SPEED = COPS.botChaseSpeed || (COPS.botSpeed * 1.55);
+    const WANDER_SPEED = COPS.botSpeed;
+
+    /* 근처 플레이어 탐색 (적대 모드와 무관하게 AI인척에서 반응) */
+    let best = null, bestD = 1e9;
+    if (players) {
       for (const p of players) {
         if (p.dead) continue;
         const d = Math.hypot(p.x - b.x, p.y - b.y);
         if (d < bestD) { bestD = d; best = p; }
       }
-      if (best && bestD < 520) {
+    }
+
+    if (best && bestD < DETECT) {
+      /* 모드 미정이거나 만료되면 chase/flee 랜덤 선택 */
+      if (!b.aiMode || now > (b.aiModeUntil || 0)) {
+        b.aiMode = Math.random() < 0.5 ? "chase" : "flee";
+        b.aiModeUntil = now + 3500 + Math.random() * 4500;
+      }
+
+      if (b.aiMode === "chase") {
         b.pose = "walk";
         b.dir = Math.atan2(best.y - b.y, best.x - b.x);
         b.face = b.dir;
-        const spd = COPS.botChaseSpeed;
-        let nx = b.x + Math.cos(b.dir) * spd * dt;
-        let ny = b.y + Math.sin(b.dir) * spd * dt;
+        let nx = b.x + Math.cos(b.dir) * CHASE_SPEED * dt;
+        let ny = b.y + Math.sin(b.dir) * CHASE_SPEED * dt;
         if (nx < R || nx > W - R) { nx = clamp(nx, R, W - R); }
         if (ny < R || ny > H - R) { ny = clamp(ny, R, H - R); }
         if (!nearbyWallHit(walls, nx, ny, R)) { b.x = nx; b.y = ny; }
         else { b.dir += 0.9; }
-        if (bestD < COPS.botAttackR + R && now >= (b.atkCdUntil || 0)) {
+        if (bestD < (COPS.botAttackR || 28) + R && now >= (b.atkCdUntil || 0)) {
           if (!best.defending) {
             best.dead = true; best.deadAt = now; best.deaths = (best.deaths || 0) + 1; best.streak = 0;
             g.mimicKillFeed = g.mimicKillFeed || [];
             g.mimicKillFeed.push({ id: uid(), kn: "AI", vn: best.name, at: now });
             g.mimicKillFeed = g.mimicKillFeed.filter((k) => now - k.at < MG_LOG_MS).slice(-8);
             b.pose = "stab";
-            b.atkCdUntil = now + COPS.botAttackCd * 1000;
+            b.atkCdUntil = now + (COPS.botAttackCd || 1.2) * 1000;
             return { killed: best, kind: "hit" };
           }
-          b.atkCdUntil = now + COPS.botAttackCd * 1000;
+          b.atkCdUntil = now + (COPS.botAttackCd || 1.2) * 1000;
           return { blocked: best, kind: "block" };
         }
         return null;
       }
+
+      /* flee: 일정 거리 유지하며 도망 */
+      b.pose = "walk";
+      let away = Math.atan2(b.y - best.y, b.x - best.x);
+      if (bestD > FLEE_DIST + 40) {
+        /* 너무 멀면 살짝 배회하듯 옆으로 */
+        away += (Math.random() - 0.5) * 0.8;
+      } else if (bestD < FLEE_DIST) {
+        away += (Math.random() - 0.5) * 0.35;
+      } else {
+        away += Math.PI / 2 * (b.fleeSide || (b.fleeSide = Math.random() < 0.5 ? 1 : -1));
+      }
+      b.dir = away;
+      b.face = b.dir;
+      const spd = CHASE_SPEED * 0.95;
+      let nx = b.x + Math.cos(b.dir) * spd * dt;
+      let ny = b.y + Math.sin(b.dir) * spd * dt;
+      if (nx < R || nx > W - R) { b.dir = Math.PI - b.dir; nx = clamp(nx, R, W - R); }
+      if (ny < R || ny > H - R) { b.dir = -b.dir; ny = clamp(ny, R, H - R); }
+      if (!nearbyWallHit(walls, nx, ny, R)) { b.x = nx; b.y = ny; }
+      else { b.dir += Math.PI * 0.55; b.fleeSide = -(b.fleeSide || 1); }
+      return null;
     }
-    b.wt -= dt;
+
+    /* 플레이어 없음 → 배회 (앉기/손흔들기 없음) */
+    b.aiMode = null;
+    b.wt = (b.wt == null ? 0 : b.wt) - dt;
     if (b.wt <= 0) {
       const r = Math.random();
-      if (r < 0.55) { b.pose = "walk"; b.dir += (Math.random() - 0.5) * 2.0; b.wt = 0.9 + Math.random() * 2.2; }
-      else if (r < 0.78) { b.pose = "stop"; b.wt = 0.6 + Math.random() * 1.4; }
-      else if (r < 0.9) { b.pose = "sit"; b.wt = 1.2 + Math.random() * 2.2; }
-      else { b.pose = "wave"; b.wt = 0.9 + Math.random() * 1.5; }
+      if (r < 0.72) { b.pose = "walk"; b.dir += (Math.random() - 0.5) * 2.0; b.wt = 0.9 + Math.random() * 2.2; }
+      else { b.pose = "stop"; b.wt = 0.5 + Math.random() * 1.2; }
     }
-    const mv = b.pose === "walk" ? 1 : 0;
-    if (!mv) { return null; }
-    let nx = b.x + Math.cos(b.dir) * COPS.botSpeed * dt;
-    let ny = b.y + Math.sin(b.dir) * COPS.botSpeed * dt;
+    if (b.pose !== "walk") return null;
+    let nx = b.x + Math.cos(b.dir) * WANDER_SPEED * dt;
+    let ny = b.y + Math.sin(b.dir) * WANDER_SPEED * dt;
     if (nx < R || nx > W - R) { b.dir = Math.PI - b.dir; nx = clamp(nx, R, W - R); }
     if (ny < R || ny > H - R) { b.dir = -b.dir; ny = clamp(ny, R, H - R); }
     if (nearbyWallHit(walls, nx, ny, R)) { b.dir += Math.PI * 0.6; b.wt = 0.45; }
@@ -1840,10 +1873,8 @@
     b.wt -= dt;
     if (b.wt <= 0) {
       const r = Math.random();
-      if (r < 0.5) { b.pose = "walk"; b.dir += (Math.random() - 0.5) * 2.4; b.wt = 0.7 + Math.random() * 1.8; }
-      else if (r < 0.72) { b.pose = "stop"; b.wt = 0.5 + Math.random() * 1.3; }
-      else if (r < 0.87) { b.pose = "sit"; b.wt = 1.0 + Math.random() * 2.0; }
-      else { b.pose = "wave"; b.wt = 0.8 + Math.random() * 1.4; }
+      if (r < 0.7) { b.pose = "walk"; b.dir += (Math.random() - 0.5) * 2.4; b.wt = 0.7 + Math.random() * 1.8; }
+      else { b.pose = "stop"; b.wt = 0.5 + Math.random() * 1.3; }
     }
     const mv = b.pose === "walk" ? 1 : 0;
     let nx = b.x + Math.cos(b.dir) * COPS.botSpeed * mv * dt;
@@ -2195,7 +2226,7 @@
       ps.forEach((p, i) => {
         p.crole = "player";
         p.team = solo ? i : (i % g.teamsCount);
-        p.cin = { mvx: 0, mvy: 0, stab: false, defend: false, sit: false, wave: false, stop: false, dash: false };
+        p.cin = { mvx: 0, mvy: 0, stab: false, defend: false, stop: false, dash: false };
         p.dead = false; p.defending = false; p.stabbing = false;
         p.kills = 0; p.deaths = 0; p.streak = 0; p.bestStreak = 0; p.aiKills = 0;
         p.stabUntil = 0; p.stabCdUntil = 0; p.stabHit = false; p.defUntil = 0; p.defCdUntil = 0; p.defAccum = 0;
@@ -2224,7 +2255,7 @@
     const policeN = Math.min(g.policeCount, Math.max(0, ps.length - 1)) || (ps.length > 1 ? 1 : 0);
     ps.forEach((p, i) => {
       p.crole = i < policeN ? "police" : "thief";
-      p.cin = { mvx: 0, mvy: 0, interact: false, stop: false, sit: false, wave: false, shoot: false };
+      p.cin = { mvx: 0, mvy: 0, interact: false, stop: false, shoot: false };
       if (p.crole === "police") {
         p.cdUntil = 0; p.catches = 0; p.phaseUntil = 0; p.phaseCdUntil = 0; p.phaseDx = null; p.phaseDy = null;
         p.phaseCharges = 2; p.phaseChargeAcc = 0; /* 돌진 최대 2회 충전 */
@@ -2318,7 +2349,7 @@
     const events = (g._botKillEvents || []).slice();
     g._botKillEvents = null;
     for (const p of ps) {
-      if (p.dead) { p.pose = "sit"; continue; }
+      if (p.dead) { p.pose = "stop"; continue; }
       const inp = p.cin || {};
       let defend = false;
       if (inp.defend && now >= (p.defCdUntil || 0)) {
@@ -2337,8 +2368,7 @@
       }
       if (p.stabbing && now >= p.stabUntil) p.stabbing = false;
       const stabbing = p.stabbing;
-      /* 찌르기 중에도 이동 가능. 방어·이모트만 정지 */
-      const locked = inp.sit || inp.wave || inp.stop || defend;
+      const locked = inp.stop || defend;
       if (inp.dash && !defend && !locked && now >= (p.dashCdUntil || 0)) {
         let ddx = inp.mvx || 0, ddy = inp.mvy || 0;
         if (Math.hypot(ddx, ddy) < 0.1) { ddx = Math.cos(p.face || 0); ddy = Math.sin(p.face || 0); }
@@ -2355,7 +2385,7 @@
       if (mag > 0.05 && !locked && !dashing) p.face = Math.atan2(dy, dx);
       const spd = dashing ? COPS.mimicDashSpeed : COPS.playerSpeed * (stabbing ? 0.82 : 1);
       if (!locked) moveMimicEntity(g, p, dx, dy, spd, dt);
-      p.pose = defend ? "defend" : stabbing ? "stab" : dashing ? "walk" : inp.sit ? "sit" : inp.wave ? "wave" : (inp.stop || mag < 0.05) ? "stop" : "walk";
+      p.pose = defend ? "defend" : stabbing ? "stab" : dashing ? "walk" : (inp.stop || mag < 0.05) ? "stop" : "walk";
       const myStabR = COPS.stabR + (p.stabRBonus || 0);
       if (stabbing && !p.stabHit && now - p.stabStart >= COPS.stabWindup * 1000) {
         for (const q of ps) {
@@ -2562,7 +2592,7 @@
       if (p.caught) {
         if (g.mode === "relic") {
           moveJailedEntity(g, p, inp.mvx || 0, inp.mvy || 0, COPS.thiefSpeed * 0.85, dt);
-        } else { p.pose = "sit"; }
+        } else { p.pose = "stop"; }
         continue;
       }
       tickKnockVel(g, p, dt);
@@ -2605,7 +2635,7 @@
         moveRelicEntity(g, p, dx, dy, dashing ? dashSpd : COPS.thiefSpeed, dt, dashing);
         p.pose = dashing ? "dash" : (inp.interact ? "stop" : (now < (p.pushFlashUntil || 0) ? "wave" : "walk"));
       } else {
-        const emote = inp.stop || inp.sit || inp.wave;
+        const emote = !!inp.stop;
         dx = emote ? 0 : dx; dy = emote ? 0 : dy;
         const mag = Math.hypot(dx, dy);
         if (mag > 1) { dx /= mag; dy /= mag; }
@@ -2615,7 +2645,7 @@
         if (!walls.some((w) => hitRect(nX, p.y, R, w))) p.x = nX;
         const nY = clamp(p.y + dy * COPS.thiefSpeed * dt, R, H - R);
         if (!walls.some((w) => hitRect(p.x, nY, R, w))) p.y = nY;
-        p.pose = inp.sit ? "sit" : inp.wave ? "wave" : (emote || mag < 0.05) ? "stop" : "walk";
+        p.pose = (emote || mag < 0.05) ? "stop" : "walk";
       }
       if (g.mode === "relic" && inp.interact && !p.caught) {
         const j = g.jail;
