@@ -1321,6 +1321,61 @@ main {
   background: linear-gradient(90deg, #4dabf7, #ffd43b);
 }
 
+.kart-speedo {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  width: 220px;
+  height: 132px;
+  pointer-events: none;
+  z-index: 3;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.45));
+}
+.kart-speedo canvas {
+  display: block;
+  width: 220px;
+  height: 140px;
+}
+.kart-speedo__readout {
+  position: absolute;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  text-align: center;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.7);
+}
+.kart-speedo__readout b {
+  display: block;
+  font-family: var(--display);
+  font-size: 1.85rem;
+  letter-spacing: 0.02em;
+}
+.kart-speedo__readout small {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.75);
+}
+.kart-speedo__drift {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  width: 88px;
+  height: 5px;
+  border-radius: 4px;
+  background: rgba(255,255,255,0.15);
+  overflow: hidden;
+}
+.kart-speedo__drift i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, #ffd43b, #ff922b);
+}
+.kart-rank__row.is-stun { opacity: 0.7; }
+
 .kart-touch {
   position: absolute;
   left: 0;
@@ -1389,6 +1444,13 @@ main {
   .kart-touch { display: flex; }
   .kart-race { height: min(75vh, 640px); }
   #kart-minimap { width: 100px; height: 100px; right: 8px; bottom: 140px; }
+  .kart-speedo {
+    bottom: 118px;
+    width: 180px;
+    height: 110px;
+  }
+  .kart-speedo canvas { width: 180px; height: 114px; }
+  .kart-speedo__readout b { font-size: 1.45rem; }
 }
 
 @media (max-width: 960px) {
