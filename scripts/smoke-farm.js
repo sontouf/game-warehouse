@@ -144,7 +144,11 @@ const windowObj = {
   },
   cancelAnimationFrame(id) {
     clearTimeout(id);
-  }
+  },
+  addEventListener() {},
+  removeEventListener() {},
+  AudioContext: null,
+  webkitAudioContext: null
 };
 
 const code =
