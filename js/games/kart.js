@@ -12,6 +12,22 @@
   var TICK_HZ = 20;
   var COLORS = ["#ff4d6d", "#4dabf7", "#69db7c", "#ffd43b", "#da77f2", "#ff922b", "#22b8cf", "#f783ac"];
 
+  /* 귀여운 오리지널 라이더 (선택 → 카트에 탑승) */
+  var CHARACTERS = [
+    { id: "kong", name: "콩이", emoji: "🟡", skin: 0xffe0b2, hair: 0xffd54f, hat: 0xffeb3b, suit: 0xffca28, accent: 0xff9800 },
+    { id: "bbung", name: "뿡이", emoji: "🟠", skin: 0xffccbc, hair: 0xff7043, hat: 0xff5722, suit: 0xff8a65, accent: 0xe64a19 },
+    { id: "titi", name: "띠띠", emoji: "🌸", skin: 0xffe0e8, hair: 0xf48fb1, hat: 0xf06292, suit: 0xf8bbd0, accent: 0xe91e63 },
+    { id: "mung", name: "뭉치", emoji: "🔵", skin: 0xffe0b2, hair: 0x64b5f6, hat: 0x2196f3, suit: 0x90caf9, accent: 0x1565c0 },
+    { id: "capi", name: "캡이", emoji: "🟢", skin: 0xffe0b2, hair: 0x81c784, hat: 0x43a047, suit: 0xa5d6a7, accent: 0x2e7d32 },
+    { id: "byul", name: "별이", emoji: "💜", skin: 0xf3e5f5, hair: 0xce93d8, hat: 0xab47bc, suit: 0xe1bee7, accent: 0x8e24aa },
+    { id: "toto", name: "토토", emoji: "🟤", skin: 0xffe0b2, hair: 0xa1887f, hat: 0x8d6e63, suit: 0xbcaaa4, accent: 0x5d4037 },
+    { id: "snow", name: "뭉실", emoji: "❄️", skin: 0xfff8e1, hair: 0xb3e5fc, hat: 0x4fc3f7, suit: 0xe1f5fe, accent: 0x0288d1 }
+  ];
+
+  function getChar(id) {
+    return CHARACTERS.find(function (c) { return c.id === id; }) || CHARACTERS[0];
+  }
+
   var MAPS = [
     {
       id: "village",
@@ -144,6 +160,7 @@
       id: uid(),
       name: "레이서" + Math.floor(Math.random() * 90 + 10),
       color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      charId: CHARACTERS[Math.floor(Math.random() * CHARACTERS.length)].id,
       team: "A",
       ready: false
     };
@@ -247,13 +264,32 @@
       els.result.hidden = view !== "result";
     }
 
+    function readLobbyForm() {
+      var nameEl = els.lobby.querySelector("#kart-name");
+      if (nameEl) me.name = nameEl.value.trim() || me.name;
+      var picked = els.lobby.querySelector(".kart-char.is-on");
+      if (picked) me.charId = picked.getAttribute("data-char") || me.charId;
+      var ch = getChar(me.charId);
+      me.color = COLORS[CHARACTERS.indexOf(ch) % COLORS.length] || me.color;
+    }
+
     function renderLobby() {
       show("lobby");
+      var charHtml = CHARACTERS.map(function (c) {
+        return '<button type="button" class="kart-char' + (c.id === me.charId ? " is-on" : "") +
+          '" data-char="' + c.id + '" title="' + c.name + '">' +
+          '<span class="kart-char__face" style="--skin:#' + ("000000" + c.skin.toString(16)).slice(-6) +
+          ";--hat:#" + ("000000" + c.hat.toString(16)).slice(-6) +
+          ";--suit:#" + ("000000" + c.suit.toString(16)).slice(-6) + '">' + c.emoji + "</span>" +
+          "<strong>" + c.name + "</strong></button>";
+      }).join("");
       els.lobby.innerHTML =
-        '<div class="kart-card">' +
+        '<div class="kart-card kart-card--wide">' +
         "<h3>🏎️ 카드라이더</h3>" +
-        "<p>최대 8인 · 서버 없이 P2P · 3D 레이스</p>" +
+        "<p>귀여운 캐릭터를 고르고 카트에 타세요 · 최대 8인</p>" +
         '<label class="kart-field">닉네임<input id="kart-name" maxlength="12" value="' + me.name.replace(/"/g, "") + '"></label>' +
+        '<p class="kart-char-label">캐릭터 선택</p>' +
+        '<div class="kart-char-grid" id="kart-chars">' + charHtml + "</div>" +
         '<div class="kart-actions">' +
         '<button type="button" class="btn btn--primary" id="kart-create">방 만들기</button>' +
         '<button type="button" class="btn btn--ghost" id="kart-join-open">코드로 참가</button>' +
@@ -263,21 +299,30 @@
         '<label class="kart-field">방 코드<input id="kart-code" maxlength="16" placeholder="예: AB12CD"></label>' +
         '<button type="button" class="btn btn--primary" id="kart-join-go">참가</button>' +
         "</div>" +
-        '<p class="kart-note">같은 Wi‑Fi/인터넷에서 방 코드를 공유하세요. (PeerJS 중계, 별도 서버 불필요)</p>' +
+        '<p class="kart-note">선택한 캐릭터가 레이스 중 카트에 탑승합니다.</p>' +
         "</div>";
+      els.lobby.querySelectorAll(".kart-char").forEach(function (btn) {
+        btn.onclick = function () {
+          els.lobby.querySelectorAll(".kart-char").forEach(function (b) { b.classList.remove("is-on"); });
+          btn.classList.add("is-on");
+          me.charId = btn.getAttribute("data-char");
+          var ch = getChar(me.charId);
+          me.color = COLORS[CHARACTERS.indexOf(ch) % COLORS.length];
+        };
+      });
       els.lobby.querySelector("#kart-create").onclick = function () {
-        me.name = els.lobby.querySelector("#kart-name").value.trim() || me.name;
+        readLobbyForm();
         createRoom(false);
       };
       els.lobby.querySelector("#kart-solo").onclick = function () {
-        me.name = els.lobby.querySelector("#kart-name").value.trim() || me.name;
+        readLobbyForm();
         createRoom(true);
       };
       els.lobby.querySelector("#kart-join-open").onclick = function () {
         els.lobby.querySelector("#kart-joinbox").hidden = false;
       };
       els.lobby.querySelector("#kart-join-go").onclick = function () {
-        me.name = els.lobby.querySelector("#kart-name").value.trim() || me.name;
+        readLobbyForm();
         joinRoom((els.lobby.querySelector("#kart-code").value || "").trim().toUpperCase());
       };
     }
@@ -288,8 +333,10 @@
         return '<option value="' + m.id + '"' + (room.mapId === m.id ? " selected" : "") + ">" + m.name + "</option>";
       }).join("");
       var list = room.players.map(function (p) {
+        var ch = getChar(p.charId);
         return '<li class="kart-plist__item" style="--c:' + p.color + '">' +
-          '<span class="kart-dot"></span><b>' + esc(p.name) + "</b>" +
+          '<span class="kart-char-mini">' + ch.emoji + "</span>" +
+          "<b>" + esc(p.name) + "</b> <small>" + ch.name + "</small>" +
           (p.id === room.hostId ? " <em>방장</em>" : "") +
           (room.mode === "team" ? " <small>팀" + p.team + "</small>" : "") +
           (p.ready ? ' <span class="kart-ready">READY</span>' : ' <span class="kart-wait">…</span>') +
@@ -375,11 +422,13 @@
       var p = room.players.find(function (x) { return x.id === me.id; });
       if (!p) {
         room.players.push({
-          id: me.id, name: me.name, color: me.color, team: me.team, ready: me.ready, peerId: me.peerId || ""
+          id: me.id, name: me.name, color: me.color, charId: me.charId,
+          team: me.team, ready: me.ready, peerId: me.peerId || ""
         });
       } else {
         p.name = me.name;
         p.color = me.color;
+        p.charId = me.charId;
         p.team = me.team;
         p.ready = me.ready;
         p.peerId = me.peerId || p.peerId;
@@ -388,7 +437,8 @@
     function syncPlayer() {
       if (room.isHost) broadcast({ type: "room", room: publicRoom() });
       else sendToHost({ type: "player", player: {
-        id: me.id, name: me.name, color: me.color, team: me.team, ready: me.ready, peerId: me.peerId
+        id: me.id, name: me.name, color: me.color, charId: me.charId,
+        team: me.team, ready: me.ready, peerId: me.peerId
       }});
     }
 
@@ -492,6 +542,7 @@
         me.ready = !!self.ready;
         me.team = self.team || me.team;
         me.color = self.color || me.color;
+        me.charId = self.charId || me.charId;
       }
     }
 
@@ -506,7 +557,7 @@
         conn.on("open", function () {
           wireConn(conn);
           conn.send({ type: "hello", player: {
-            id: me.id, name: me.name, color: me.color, team: me.team, ready: false
+            id: me.id, name: me.name, color: me.color, charId: me.charId, team: me.team, ready: false
           }});
         });
         conn.on("error", function () {
@@ -598,6 +649,7 @@
           id: p.id,
           name: p.name,
           color: p.color,
+          charId: p.charId || CHARACTERS[i % CHARACTERS.length].id,
           team: p.team,
           x: start.x + Math.cos(ang + Math.PI / 2) * lateral,
           z: start.z + Math.sin(ang + Math.PI / 2) * lateral,
@@ -755,8 +807,9 @@
       placeTrackProps(curve, theme);
 
       Object.keys(race.karts).forEach(function (id) {
-        race.karts[id].mesh = makeKartMesh(race.karts[id].color);
-        race.scene.add(race.karts[id].mesh);
+        var k = race.karts[id];
+        k.mesh = makeKartMesh(k.color, k.charId);
+        race.scene.add(k.mesh);
       });
     }
 
@@ -793,7 +846,71 @@
       }
     }
 
-    function makeKartMesh(colorHex) {
+    function makeRiderMesh(charId) {
+      var ch = getChar(charId);
+      var rider = new THREE.Group();
+      var skinM = new THREE.MeshLambertMaterial({ color: ch.skin });
+      var hatM = new THREE.MeshLambertMaterial({ color: ch.hat });
+      var suitM = new THREE.MeshLambertMaterial({ color: ch.suit });
+      var hairM = new THREE.MeshLambertMaterial({ color: ch.hair });
+      var eyeM = mat("eye", function () { return new THREE.MeshLambertMaterial({ color: 0x222222 }); });
+      var cheekM = mat("cheek", function () { return new THREE.MeshLambertMaterial({ color: 0xff8a80 }); });
+
+      /* 앉아 있는 몸통 */
+      var torso = new THREE.Mesh(geo("rtorso", function () { return new THREE.BoxGeometry(0.55, 0.45, 0.4); }), suitM);
+      torso.position.set(0, 0.35, 0);
+      rider.add(torso);
+      var legL = new THREE.Mesh(geo("rleg", function () { return new THREE.BoxGeometry(0.18, 0.28, 0.35); }), suitM);
+      legL.position.set(-0.14, 0.12, 0.22);
+      rider.add(legL);
+      var legR = legL.clone();
+      legR.position.x = 0.14;
+      rider.add(legR);
+
+      /* 큰 머리 (치비) */
+      var head = new THREE.Mesh(geo("rhead", function () { return new THREE.SphereGeometry(0.38, 12, 10); }), skinM);
+      head.position.set(0, 0.85, 0.02);
+      rider.add(head);
+
+      var hat = new THREE.Mesh(geo("rhat", function () { return new THREE.SphereGeometry(0.42, 12, 8, 0, Math.PI * 2, 0, Math.PI * 0.55); }), hatM);
+      hat.position.set(0, 0.98, 0);
+      rider.add(hat);
+      var pom = new THREE.Mesh(geo("rpom", function () { return new THREE.SphereGeometry(0.12, 8, 6); }), hairM);
+      pom.position.set(0, 1.28, 0);
+      rider.add(pom);
+
+      var eyeL = new THREE.Mesh(geo("reye", function () { return new THREE.SphereGeometry(0.055, 6, 6); }), eyeM);
+      eyeL.position.set(-0.12, 0.88, 0.32);
+      rider.add(eyeL);
+      var eyeR = eyeL.clone();
+      eyeR.position.x = 0.12;
+      rider.add(eyeR);
+      var cheekL = new THREE.Mesh(geo("rcheek", function () { return new THREE.SphereGeometry(0.06, 6, 6); }), cheekM);
+      cheekL.position.set(-0.22, 0.78, 0.28);
+      cheekL.scale.set(1, 0.7, 0.5);
+      rider.add(cheekL);
+      var cheekR = cheekL.clone();
+      cheekR.position.x = 0.22;
+      rider.add(cheekR);
+
+      var armL = new THREE.Mesh(geo("rarm", function () { return new THREE.BoxGeometry(0.14, 0.14, 0.32); }), skinM);
+      armL.position.set(-0.38, 0.42, 0.15);
+      armL.rotation.y = 0.35;
+      rider.add(armL);
+      var armR = armL.clone();
+      armR.position.x = 0.38;
+      armR.rotation.y = -0.35;
+      rider.add(armR);
+
+      rider.position.set(0, 0.42, -0.08);
+      rider.userData.head = head;
+      rider.userData.hat = hat;
+      /* 바디 머티리얼은 캐릭터별이라 destroy 시 dispose */
+      rider.userData._mats = [skinM, hatM, suitM, hairM];
+      return rider;
+    }
+
+    function makeKartMesh(colorHex, charId) {
       var g = new THREE.Group();
       var color = new THREE.Color(colorHex);
       var bodyMat = new THREE.MeshLambertMaterial({ color: color });
@@ -805,11 +922,12 @@
       var nose = new THREE.Mesh(geo("knose", function () { return new THREE.BoxGeometry(1.05, 0.28, 0.55); }), bodyMat);
       nose.position.set(0, 0.34, 1.15);
       g.add(nose);
-      var cabin = new THREE.Mesh(geo("kcabin", function () { return new THREE.BoxGeometry(0.95, 0.32, 0.85); }), dark);
-      cabin.position.set(0, 0.68, -0.05);
-      g.add(cabin);
+      /* 낮은 시트 — 캐릭터가 보이도록 캐빈 측면만 */
+      var seat = new THREE.Mesh(geo("kseat", function () { return new THREE.BoxGeometry(0.7, 0.18, 0.55); }), dark);
+      seat.position.set(0, 0.55, -0.05);
+      g.add(seat);
       var spoiler = new THREE.Mesh(geo("kspoiler", function () { return new THREE.BoxGeometry(1.5, 0.08, 0.35); }), bodyMat);
-      spoiler.position.set(0, 0.72, -0.95);
+      spoiler.position.set(0, 0.85, -0.95);
       g.add(spoiler);
       g.userData.wheels = [];
       for (var i = 0; i < 4; i++) {
@@ -819,6 +937,9 @@
         g.add(w);
         g.userData.wheels.push(w);
       }
+      var rider = makeRiderMesh(charId);
+      g.add(rider);
+      g.userData.rider = rider;
       g.userData.bodyMat = bodyMat;
       return g;
     }
@@ -1128,6 +1249,13 @@
         k.mesh.userData.wheels.forEach(function (w) {
           w.rotation.x = k.wheelSpin || 0;
         });
+      }
+      var rider = k.mesh.userData.rider;
+      if (rider && rider.userData.head) {
+        var bob = Math.sin((race ? race.t : 0) * 10 + k.id.length) * (k.drifting ? 0.04 : 0.015);
+        rider.userData.head.position.y = 0.85 + bob;
+        if (rider.userData.hat) rider.userData.hat.position.y = 0.98 + bob;
+        rider.rotation.z = lean * 0.6;
       }
     }
 
@@ -1545,12 +1673,18 @@
         if (race._kd) window.removeEventListener("keydown", race._kd);
         if (race._ku) window.removeEventListener("keyup", race._ku);
         if (race.scene) {
+          Object.keys(race.karts || {}).forEach(function (id) {
+            var mesh = race.karts[id].mesh;
+            if (mesh && mesh.userData.rider && mesh.userData.rider.userData._mats) {
+              mesh.userData.rider.userData._mats.forEach(function (m) { if (m && m.dispose) m.dispose(); });
+            }
+            if (mesh && mesh.userData.bodyMat && mesh.userData.bodyMat.dispose) mesh.userData.bodyMat.dispose();
+          });
           race.scene.traverse(function (obj) {
-            if (!obj.isMesh) return;
-            var sharedG = false, sharedM = false;
-            Object.keys(sharedGeo).forEach(function (k) { if (sharedGeo[k] === obj.geometry) sharedG = true; });
+            if (!obj.isMesh || !obj.material || !obj.material.dispose) return;
+            var sharedM = false;
             Object.keys(sharedMat).forEach(function (k) { if (sharedMat[k] === obj.material) sharedM = true; });
-            if (obj.material && obj.material.dispose && !sharedM) obj.material.dispose();
+            if (!sharedM && obj.material.userData && obj.material.userData._disposed) return;
           });
           while (race.scene.children.length) race.scene.remove(race.scene.children[0]);
         }
@@ -1606,18 +1740,21 @@
       room.code = "LOAD8";
       room.hostId = me.id;
       me.name = opts.playerName || "Player1";
+      me.charId = me.charId || CHARACTERS[0].id;
       me.color = COLORS[0];
       me.team = "A";
       me.ready = true;
       me.peerId = "local";
       room.players = [{
-        id: me.id, name: me.name, color: me.color, team: "A", ready: true, peerId: "local", isBot: false
+        id: me.id, name: me.name, color: me.color, charId: me.charId,
+        team: "A", ready: true, peerId: "local", isBot: false
       }];
       for (var i = 1; i < MAX_PLAYERS; i++) {
         room.players.push({
           id: "BOT" + i,
           name: "Bot" + i,
           color: COLORS[i % COLORS.length],
+          charId: CHARACTERS[i % CHARACTERS.length].id,
           team: i % 2 === 0 ? "A" : "B",
           ready: true,
           peerId: "bot",
@@ -1672,10 +1809,10 @@
     id: "kart",
     title: "카드라이더",
     emoji: "🏎️",
-    desc: "최대 8인 P2P 3D 레이스 · 맵 3종 · 팀/개인전 · 드리프트·부스터",
-    tags: ["레이싱", "멀티", "3D", "모바일"],
+    desc: "귀여운 캐릭터 선택 · 최대 8인 P2P 3D 레이스 · 맵 3종",
+    tags: ["레이싱", "멀티", "3D", "캐릭터"],
     accent: "#ff6b4a",
-    hint: "조향·드리프트(Space)·부스터(Ctrl/Z) · 중앙 속도계 · 충돌 시 반동 후 재가속",
+    hint: "캐릭터 선택 후 탑승 · 조향·드리프트·부스터 · 속도계 · 충돌 반동",
     create: create
   };
 })(window);

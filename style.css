@@ -1153,6 +1153,57 @@ main {
   box-shadow: var(--shadow);
 }
 .kart-card--wide { max-width: 640px; }
+.kart-char-label {
+  margin: 4px 0 8px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 600;
+}
+.kart-char-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.kart-char {
+  border: 2px solid var(--line);
+  background: rgba(255,255,255,0.04);
+  border-radius: 14px;
+  padding: 10px 6px 8px;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  transition: 0.15s ease;
+}
+.kart-char:hover { border-color: rgba(255,200,100,0.5); transform: translateY(-2px); }
+.kart-char.is-on {
+  border-color: var(--ok);
+  background: rgba(61, 214, 140, 0.12);
+  box-shadow: 0 0 0 1px rgba(61, 214, 140, 0.35);
+}
+.kart-char__face {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 1.55rem;
+  background: radial-gradient(circle at 35% 30%, #fff8, transparent 45%),
+    linear-gradient(160deg, var(--hat), var(--suit));
+  box-shadow: inset 0 -6px 0 rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.2);
+}
+.kart-char strong { font-size: 0.82rem; font-weight: 700; }
+.kart-char-mini {
+  font-size: 1.15rem;
+  line-height: 1;
+}
+
+@media (max-width: 520px) {
+  .kart-char-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .kart-card h3 {
   margin: 0 0 8px;
   font-family: var(--display);
