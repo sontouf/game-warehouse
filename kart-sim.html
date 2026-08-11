@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kart 8P Load / Sim</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    html, body { margin: 0; background: #0b1220; color: #fff; font-family: "IBM Plex Sans KR", sans-serif; }
+    #stage { min-height: 100vh; padding: 8px; box-sizing: border-box; }
+    .kart-race { height: 72vh !important; min-height: 480px; }
+  </style>
+</head>
+<body>
+  <div id="stage"></div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="js/games/kart.js"></script>
+  <script>
+    window.__SIM_READY__ = false;
+    window.__SIM_ERROR__ = null;
+    try {
+      if (!window.THREE) throw new Error("THREE missing");
+      if (!window.GWGames || !GWGames.kart) throw new Error("kart game missing");
+      window.__KART_HANDLE__ = GWGames.kart.create(document.getElementById("stage"), {
+        setScore: function (n) { window.__SCORE__ = n; }
+      });
+      window.__SIM_READY__ = true;
+    } catch (e) {
+      window.__SIM_ERROR__ = String(e && e.message ? e.message : e);
+      document.getElementById("stage").textContent = window.__SIM_ERROR__;
+    }
+  </script>
+</body>
+</html>

@@ -585,6 +585,7 @@
           finishTime: 0,
           place: 0,
           input: p.id === me.id ? input : { steer: 0, throttle: 1, drift: false, boost: false },
+          isBot: !!p.isBot,
           mesh: null
         };
       });
@@ -603,7 +604,8 @@
         scene: null,
         camera: null,
         renderer: null,
-        trackLine: map.pts.slice()
+        trackLine: map.pts.slice(),
+        sim: null
       };
 
       show("race");
@@ -775,6 +777,40 @@
       if (my) my.input = { steer: input.steer, throttle: throttle, drift: drift, boost: boost };
     }
 
+    function pointAtProgress(prog) {
+      var pts = race.map.pts;
+      var meta = race.meta;
+      var remain = ((prog % meta.total) + meta.total) % meta.total;
+      for (var i = 0; i < pts.length; i++) {
+        var len = meta.segLen[i];
+        if (remain <= len) {
+          var t = len ? remain / len : 0;
+          var a = pts[i], b = pts[(i + 1) % pts.length];
+          return { x: a.x + (b.x - a.x) * t, z: a.z + (b.z - a.z) * t };
+        }
+        remain -= len;
+      }
+      return pts[0];
+    }
+    function normAngle(a) {
+      while (a > Math.PI) a -= Math.PI * 2;
+      while (a < -Math.PI) a += Math.PI * 2;
+      return a;
+    }
+    function aiDrive(k) {
+      if (k.finished) return;
+      var look = pointAtProgress(k.progress + 16 + (k.id.charCodeAt(k.id.length - 1) % 5));
+      var desired = Math.atan2(look.z - k.z, look.x - k.x);
+      var diff = normAngle(desired - k.yaw);
+      var skill = 0.85 + (k.id.charCodeAt(1) % 10) * 0.02;
+      k.input = {
+        steer: clamp(diff * 2.1 * skill, -1, 1),
+        throttle: 1,
+        drift: Math.abs(diff) > 0.5 && k.speed > 9,
+        boost: k.boost > 0.4 && Math.abs(diff) < 0.35
+      };
+    }
+
     function stepKart(k, dt) {
       if (k.finished) return;
       var inp = k.input || { steer: 0, throttle: 1, drift: false, boost: false };
@@ -857,6 +893,24 @@
 
     function update(dt) {
       if (!race) return;
+      var frameDt = dt;
+      if (race.sim && race.sim.metrics) {
+        var m = race.sim.metrics;
+        m.frames += 1;
+        m.sumDt += frameDt;
+        m.maxDt = Math.max(m.maxDt, frameDt);
+        m.minDt = Math.min(m.minDt, frameDt);
+        if (m.frames % 20 === 0) {
+          m.samples.push({
+            t: Math.round(race.t * 100) / 100,
+            fps: Math.round(1 / Math.max(frameDt, 0.0001)),
+            phase: race.phase,
+            meshes: race.scene ? race.scene.children.length : 0,
+            karts: Object.keys(race.karts).length
+          });
+        }
+        dt = frameDt * (race.sim.timeScale || 1);
+      }
       race.t += dt;
       readLocalInput();
 
@@ -881,7 +935,11 @@
       if (race.phase === "done") return;
 
       if (authority) {
-        Object.keys(race.karts).forEach(function (id) { stepKart(race.karts[id], dt); });
+        Object.keys(race.karts).forEach(function (id) {
+          var k = race.karts[id];
+          if (k.isBot) aiDrive(k);
+          stepKart(k, dt);
+        });
       }
 
       if (race.phase === "finishing") {
@@ -895,6 +953,8 @@
       if (authority) {
         var alive = Object.keys(race.karts).filter(function (id) { return !race.karts[id].finished; });
         if (race.firstFinished && alive.length === 0) endRace();
+        /* load-test safety: prevent infinite races if AI stalls */
+        if (race.sim && race.t > 140 && race.phase !== "done") endRace();
       }
 
       var ranks = rankingList();
@@ -1139,10 +1199,95 @@
       race = null;
     }
 
-    /* fix duplicate createRoom — call the second definition path via assign */
+    function getMetrics() {
+      if (!race || !race.sim || !race.sim.metrics) return null;
+      var m = race.sim.metrics;
+      var avgDt = m.frames ? m.sumDt / m.frames : 0;
+      return {
+        frames: m.frames,
+        avgFps: avgDt ? Math.round(1 / avgDt) : 0,
+        minFps: m.maxDt ? Math.round(1 / m.maxDt) : 0,
+        maxFps: m.minDt < 1e8 ? Math.round(1 / m.minDt) : 0,
+        maxFrameMs: Math.round(m.maxDt * 1000),
+        avgFrameMs: Math.round(avgDt * 1000 * 10) / 10,
+        samples: m.samples.slice(),
+        phase: race.phase,
+        playerCount: Object.keys(race.karts).length,
+        results: race.results.slice(),
+        sceneChildren: race.scene ? race.scene.children.length : 0,
+        mapId: race.map.id,
+        mode: race.mode
+      };
+    }
+
+    function getUiState() {
+      return {
+        mode: mode,
+        roomPlayers: room.players.length,
+        racePhase: race ? race.phase : null,
+        countdown: race ? race.countdown : null,
+        finishTimer: race ? race.finishTimer : null,
+        rankText: els.rank ? els.rank.innerText : "",
+        resultVisible: !els.result.hidden,
+        raceVisible: !els.race.hidden,
+        roomVisible: !els.room.hidden,
+        centerText: els.center ? els.center.textContent : "",
+        minimapOk: !!(els.minimap && els.minimap.getContext),
+        canvasOk: !!(els.canvas && els.canvas.width > 0)
+      };
+    }
+
+    function startEightPlayerSim(opts) {
+      opts = opts || {};
+      room.isHost = true;
+      room.mapId = opts.mapId || "village";
+      room.mode = opts.mode || "solo";
+      room.code = "LOAD8";
+      room.hostId = me.id;
+      me.name = opts.playerName || "Player1";
+      me.color = COLORS[0];
+      me.team = "A";
+      me.ready = true;
+      me.peerId = "local";
+      room.players = [{
+        id: me.id, name: me.name, color: me.color, team: "A", ready: true, peerId: "local", isBot: false
+      }];
+      for (var i = 1; i < MAX_PLAYERS; i++) {
+        room.players.push({
+          id: "BOT" + i,
+          name: "Bot" + i,
+          color: COLORS[i % COLORS.length],
+          team: i % 2 === 0 ? "A" : "B",
+          ready: true,
+          peerId: "bot",
+          isBot: true
+        });
+      }
+      if (opts.stopAtRoom) {
+        renderRoom();
+        return getUiState();
+      }
+      beginRace(42, room.mapId, room.mode, room.players);
+      var forceLaps = opts.forceLaps != null ? opts.forceLaps : 1;
+      Object.keys(race.karts).forEach(function (id) {
+        race.karts[id].laps = forceLaps;
+        if (id !== me.id) race.karts[id].isBot = true;
+      });
+      race.sim = {
+        active: true,
+        timeScale: opts.timeScale != null ? opts.timeScale : 2.5,
+        metrics: { frames: 0, sumDt: 0, maxDt: 0, minDt: 1e9, samples: [] }
+      };
+      /* human also AI-driven in loadtest for fair full-field stress */
+      if (opts.driveSelf !== false) {
+        race.karts[me.id].isBot = true;
+      }
+      return getUiState();
+    }
+
     renderLobby();
 
-    return {
+    var apiHandle = {
       destroy: function () {
         destroyed = true;
         destroyRace();
@@ -1150,8 +1295,15 @@
         conns = {};
         if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
         if (root.parentNode) root.parentNode.removeChild(root);
-      }
+      },
+      startEightPlayerSim: startEightPlayerSim,
+      getMetrics: getMetrics,
+      getUiState: getUiState,
+      renderLobby: renderLobby,
+      root: root
     };
+    global.__KART_TEST__ = apiHandle;
+    return apiHandle;
   }
 
   global.GWGames = global.GWGames || {};

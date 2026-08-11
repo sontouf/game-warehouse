@@ -1,0 +1,441 @@
+{
+  "startedAt": "2026-08-11T05:08:16.440Z",
+  "maps": [
+    {
+      "mapId": "village",
+      "metrics": {
+        "frames": 161,
+        "avgFps": 60,
+        "minFps": 20,
+        "maxFps": null,
+        "maxFrameMs": 50,
+        "avgFrameMs": 16.8,
+        "samples": [
+          {
+            "t": 1.07,
+            "fps": 60,
+            "phase": "countdown",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 2.13,
+            "fps": 60,
+            "phase": "countdown",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 3.2,
+            "fps": 60,
+            "phase": "countdown",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 4.27,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 5.33,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 6.4,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 7.47,
+            "fps": 60,
+            "phase": "done",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 8.53,
+            "fps": 60,
+            "phase": "done",
+            "meshes": 14,
+            "karts": 8
+          }
+        ],
+        "phase": "done",
+        "playerCount": 8,
+        "results": [
+          {
+            "id": "BOT4",
+            "name": "Bot4",
+            "team": "A",
+            "time": 3.3599999999999985,
+            "place": 1
+          },
+          {
+            "id": "BOT5",
+            "name": "Bot5",
+            "team": "B",
+            "time": 3.466240000000001,
+            "place": 2
+          },
+          {
+            "id": "BOT6",
+            "name": "Bot6",
+            "team": "A",
+            "time": 3.51968,
+            "place": 3
+          },
+          {
+            "id": "BOT7",
+            "name": "Bot7",
+            "team": "B",
+            "time": 3.6265599999999987,
+            "place": 4
+          },
+          {
+            "id": "9GUPQ0",
+            "name": "Player1",
+            "team": "A",
+            "time": 6.613119999999993,
+            "place": 5
+          },
+          {
+            "id": "BOT1",
+            "name": "Bot1",
+            "team": "B",
+            "time": 6.666239999999995,
+            "place": 6
+          },
+          {
+            "id": "BOT2",
+            "name": "Bot2",
+            "team": "A",
+            "time": 6.879679999999993,
+            "place": 7
+          },
+          {
+            "id": "BOT3",
+            "name": "Bot3",
+            "team": "B",
+            "time": 6.933119999999993,
+            "place": 8
+          }
+        ],
+        "sceneChildren": 14,
+        "mapId": "village",
+        "mode": "solo"
+      },
+      "resultRows": 8
+    },
+    {
+      "mapId": "forest",
+      "metrics": {
+        "frames": 185,
+        "avgFps": 60,
+        "minFps": 60,
+        "maxFps": null,
+        "maxFrameMs": 17,
+        "avgFrameMs": 16.6,
+        "samples": [
+          {
+            "t": 1.35,
+            "fps": 60,
+            "phase": "countdown",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 2.85,
+            "fps": 60,
+            "phase": "countdown",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 4.35,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 5.85,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 7.35,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 8.85,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 10.35,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 11.85,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 13.35,
+            "fps": 60,
+            "phase": "done",
+            "meshes": 14,
+            "karts": 8
+          }
+        ],
+        "phase": "done",
+        "playerCount": 8,
+        "results": [
+          {
+            "id": "BOT5",
+            "name": "Bot5",
+            "team": "B",
+            "time": 3.3750000000000018,
+            "place": 1
+          },
+          {
+            "id": "BOT6",
+            "name": "Bot6",
+            "team": "A",
+            "time": 3.3750000000000018,
+            "place": 2
+          },
+          {
+            "id": "BOT7",
+            "name": "Bot7",
+            "team": "B",
+            "time": 3.3750000000000018,
+            "place": 3
+          },
+          {
+            "id": "BOT4",
+            "name": "Bot4",
+            "team": "A",
+            "time": null,
+            "place": 4,
+            "dnf": true
+          },
+          {
+            "id": "BOT1",
+            "name": "Bot1",
+            "team": "B",
+            "time": null,
+            "place": 5,
+            "dnf": true
+          },
+          {
+            "id": "BOT3",
+            "name": "Bot3",
+            "team": "B",
+            "time": null,
+            "place": 6,
+            "dnf": true
+          },
+          {
+            "id": "BOT2",
+            "name": "Bot2",
+            "team": "A",
+            "time": null,
+            "place": 7,
+            "dnf": true
+          },
+          {
+            "id": "9GUPQ0",
+            "name": "Player1",
+            "team": "A",
+            "time": null,
+            "place": 8,
+            "dnf": true
+          }
+        ],
+        "sceneChildren": 14,
+        "mapId": "forest",
+        "mode": "team"
+      }
+    },
+    {
+      "mapId": "mine",
+      "metrics": {
+        "frames": 193,
+        "avgFps": 60,
+        "minFps": 60,
+        "maxFps": null,
+        "maxFrameMs": 17,
+        "avgFrameMs": 16.6,
+        "samples": [
+          {
+            "t": 1.35,
+            "fps": 60,
+            "phase": "countdown",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 2.85,
+            "fps": 60,
+            "phase": "countdown",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 4.35,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 5.85,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 7.35,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 8.85,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 10.35,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 11.85,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          },
+          {
+            "t": 13.35,
+            "fps": 60,
+            "phase": "finishing",
+            "meshes": 14,
+            "karts": 8
+          }
+        ],
+        "phase": "done",
+        "playerCount": 8,
+        "results": [
+          {
+            "id": "BOT4",
+            "name": "Bot4",
+            "team": "A",
+            "time": 3.6004500000000017,
+            "place": 1
+          },
+          {
+            "id": "BOT5",
+            "name": "Bot5",
+            "team": "B",
+            "time": 3.825,
+            "place": 2
+          },
+          {
+            "id": "BOT6",
+            "name": "Bot6",
+            "team": "A",
+            "time": 3.9752999999999985,
+            "place": 3
+          },
+          {
+            "id": "BOT7",
+            "name": "Bot7",
+            "team": "B",
+            "time": 4.050450000000001,
+            "place": 4
+          },
+          {
+            "id": "BOT1",
+            "name": "Bot1",
+            "team": "B",
+            "time": null,
+            "place": 5,
+            "dnf": true
+          },
+          {
+            "id": "9GUPQ0",
+            "name": "Player1",
+            "team": "A",
+            "time": null,
+            "place": 6,
+            "dnf": true
+          },
+          {
+            "id": "BOT3",
+            "name": "Bot3",
+            "team": "B",
+            "time": null,
+            "place": 7,
+            "dnf": true
+          },
+          {
+            "id": "BOT2",
+            "name": "Bot2",
+            "team": "A",
+            "time": null,
+            "place": 8,
+            "dnf": true
+          }
+        ],
+        "sceneChildren": 14,
+        "mapId": "mine",
+        "mode": "team"
+      }
+    }
+  ],
+  "screenshots": [
+    "C:\\Ref\\DSLAB\\test\\money\\test-results\\kart-8p\\01-lobby.png",
+    "C:\\Ref\\DSLAB\\test\\money\\test-results\\kart-8p\\02-room-8players-ready.png",
+    "C:\\Ref\\DSLAB\\test\\money\\test-results\\kart-8p\\03-countdown.png",
+    "C:\\Ref\\DSLAB\\test\\money\\test-results\\kart-8p\\04-racing-live-ranks.png",
+    "C:\\Ref\\DSLAB\\test\\money\\test-results\\kart-8p\\05-finish-window-10s.png",
+    "C:\\Ref\\DSLAB\\test\\money\\test-results\\kart-8p\\06-results-ranks.png",
+    "C:\\Ref\\DSLAB\\test\\money\\test-results\\kart-8p\\07-racing-forest.png",
+    "C:\\Ref\\DSLAB\\test\\money\\test-results\\kart-8p\\08-results-forest.png",
+    "C:\\Ref\\DSLAB\\test\\money\\test-results\\kart-8p\\07-racing-mine.png",
+    "C:\\Ref\\DSLAB\\test\\money\\test-results\\kart-8p\\08-results-mine.png"
+  ],
+  "pass": true,
+  "errors": [],
+  "fpsFails": [],
+  "finishedAt": "2026-08-11T05:08:30.477Z"
+}
